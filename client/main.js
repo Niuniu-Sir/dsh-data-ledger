@@ -396,27 +396,37 @@ window.__ModuleLoader__.load({
       } catch (e) {
         contentEl.innerHTML = `<div style="padding:12px;color:${C().danger}">加载失败: ${esc(e.message)}</div>`;
       } finally {
+        measurePanelBounds();
         if (refreshTimer) clearTimeout(refreshTimer);
         refreshTimer = setTimeout(refresh, refreshSeconds * 1000);
       }
     }
 
-    // 面板高度对齐官方侧栏：顶部与「新建会话」框齐平（盖住它），底部不遮「设置」
+    // 面板高度对齐官方侧栏：顶部平「新会话」行，底部不遮「设置」
     function measurePanelBounds() {
       if (!panel) return;
       try {
-        const btns = [...document.querySelectorAll("button")];
-        const newBtn = btns.find(b => /新建会话|新会话|New Session|New Chat|New chat/i.test(b.textContent || ""));
-        if (newBtn) {
-          const r = newBtn.getBoundingClientRect();
-          if (r.top > 0) panel.style.top = Math.max(0, r.top) + "px";
+        // 锚点1：会话列表里的空白「新会话/New Session」行（treeitem 角色）
+        let topPx = null;
+        for (const el of document.querySelectorAll('[role="treeitem"]')) {
+          const t = (el.textContent || "").trim();
+          if (/^(新会话|New Session)$/i.test(t)) {
+            const r = el.getBoundingClientRect();
+            if (r.top > 0 && r.height > 0) { topPx = r.top; break; }
+          }
         }
+        if (topPx === null) {
+          const plus = document.querySelector('[aria-label*="新建会话"], [aria-label*="New session"], [aria-label*="New Session"]');
+          if (plus) topPx = plus.getBoundingClientRect().top;
+        }
+        if (topPx !== null) panel.style.top = Math.max(0, topPx) + "px";
+        // 锚点2：最靠下的「设置/Settings」控件
         let best = null;
-        for (const b of btns) {
-          const t = (b.textContent || "") + " " + (b.getAttribute("aria-label") || "");
+        for (const el of document.querySelectorAll('button, [aria-label]')) {
+          const t = (el.getAttribute("aria-label") || "") + " " + (el.textContent || "");
           if (/设置|Settings/i.test(t)) {
-            const r = b.getBoundingClientRect();
-            if (!best || r.top > best.top) best = r;
+            const r = el.getBoundingClientRect();
+            if (r.height > 0 && r.width > 0 && (!best || r.top > best.top)) best = r;
           }
         }
         if (best) panel.style.bottom = Math.max(0, window.innerHeight - best.top + 6) + "px";
@@ -437,7 +447,7 @@ window.__ModuleLoader__.load({
       });
       const bar = document.createElement("div");
       Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#111827", color: "#fff" });
-      bar.innerHTML = `<div><div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px;margin-left:82px">${esc(fmtTime(Date.now()))}</div></div>`;
+      bar.innerHTML = `<div><div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><div style="font-size:14px;color:#9ca3af;margin-top:2px;margin-left:22px">${esc(fmtTime(Date.now()))}</div></div>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
       refBtn.textContent = "⟳";
@@ -513,7 +523,10 @@ window.__ModuleLoader__.load({
         setOpen(false);
       });
       document.body.appendChild(btn);
+      // 官方 UI 渲染有先后：挂载后多次校准高度
       measurePanelBounds();
+      setTimeout(() => measurePanelBounds(), 800);
+      setTimeout(() => measurePanelBounds(), 2500);
       window.addEventListener("resize", () => { if (panel) measurePanelBounds(); });
       refresh();
     }
