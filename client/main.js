@@ -10,22 +10,6 @@ window.__ModuleLoader__.load({
     const name = "dsh-data-ledger";
     const inject = [];
     const API = "/api/data-ledger";
-    // 跟随 DSH 主题的配色（官方 CSS 变量 + 兜底值，深浅色自动一致）
-    const T = {
-      surface: "var(--dsw-alias-bg-overlay, #ffffff)",
-      text: "var(--dsw-alias-label-primary, #111827)",
-      textSecondary: "var(--dsw-alias-label-secondary, var(--dsw-alias-label-secondary, #4b5563))",
-      textTertiary: "var(--dsw-alias-label-tertiary, var(--dsw-alias-label-tertiary, #9ca3af))",
-      dimmed: "var(--dsw-alias-label-dimmed, var(--dsw-alias-label-dimmed, #6b7280))",
-      border: "var(--dsw-alias-border-l, rgba(128,128,128,.25))",
-      hoverBg: "var(--dsw-alias-interactive-bg-hover, var(--dsw-alias-interactive-bg-hover, #f9fafb))",
-      hoverAccent: "var(--dsw-alias-interactive-bg-hover-accent, var(--dsw-alias-interactive-bg-hover-accent, #fffbeb))",
-      brand: "var(--dsw-alias-brand-text, var(--dsw-alias-brand-text, #4338ca))",
-      danger: "var(--dsw-alias-state-error-primary, var(--dsw-alias-state-error-primary, #b91c1c))",
-      dangerBg: "var(--dsw-alias-interactive-bg-hover-danger, var(--dsw-alias-interactive-bg-hover-danger, #fef2f2))",
-      floatingFill: "var(--dsw-alias-button-floating-fill, #111827)",
-      invertedText: "var(--dsw-alias-label-primary-inverted, #fff)",
-    };
     const LS_PREFIX_ORIGIN = [
       ["dsh-better-sidebar", "插件 dsh-better-sidebar · 布局/偏好"],
       ["dsh-milestone", "插件 dsh-milestone（已卸载）· 书签残留"],
