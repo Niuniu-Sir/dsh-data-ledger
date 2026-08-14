@@ -10,6 +10,22 @@ window.__ModuleLoader__.load({
     const name = "dsh-data-ledger";
     const inject = [];
     const API = "/api/data-ledger";
+    // 跟随 DSH 主题的配色（官方 CSS 变量 + 兜底值，深浅色自动一致）
+    const T = {
+      surface: "var(--dsw-alias-bg-overlay, #ffffff)",
+      text: "var(--dsw-alias-label-primary, #111827)",
+      textSecondary: "var(--dsw-alias-label-secondary, var(--dsw-alias-label-secondary, #4b5563))",
+      textTertiary: "var(--dsw-alias-label-tertiary, var(--dsw-alias-label-tertiary, #9ca3af))",
+      dimmed: "var(--dsw-alias-label-dimmed, var(--dsw-alias-label-dimmed, #6b7280))",
+      border: "var(--dsw-alias-border-l, rgba(128,128,128,.25))",
+      hoverBg: "var(--dsw-alias-interactive-bg-hover, var(--dsw-alias-interactive-bg-hover, #f9fafb))",
+      hoverAccent: "var(--dsw-alias-interactive-bg-hover-accent, var(--dsw-alias-interactive-bg-hover-accent, #fffbeb))",
+      brand: "var(--dsw-alias-brand-text, var(--dsw-alias-brand-text, #4338ca))",
+      danger: "var(--dsw-alias-state-error-primary, var(--dsw-alias-state-error-primary, #b91c1c))",
+      dangerBg: "var(--dsw-alias-interactive-bg-hover-danger, var(--dsw-alias-interactive-bg-hover-danger, #fef2f2))",
+      floatingFill: "var(--dsw-alias-button-floating-fill, #111827)",
+      invertedText: "var(--dsw-alias-label-primary-inverted, #fff)",
+    };
     const LS_PREFIX_ORIGIN = [
       ["dsh-better-sidebar", "插件 dsh-better-sidebar · 布局/偏好"],
       ["dsh-milestone", "插件 dsh-milestone（已卸载）· 书签残留"],
@@ -71,8 +87,8 @@ window.__ModuleLoader__.load({
       const b = document.createElement("button");
       b.textContent = label;
       Object.assign(b.style, {
-        border: "1px solid #d1d5db", background: danger ? "#fef2f2" : "#f9fafb",
-        color: danger ? "#b91c1c" : "#374151", borderRadius: "6px", padding: "2px 8px",
+        border: "1px solid var(--dsw-alias-border-l, #d1d5db)", background: danger ? "var(--dsw-alias-interactive-bg-hover-danger, #fef2f2)" : "var(--dsw-alias-interactive-bg-hover, #f9fafb)",
+        color: danger ? "var(--dsw-alias-state-error-primary, #b91c1c)" : "var(--dsw-alias-label-secondary, #374151)", borderRadius: "6px", padding: "2px 8px",
         fontSize: "12px", cursor: "pointer", marginRight: "4px",
       });
       b.addEventListener("click", (e) => { e.stopPropagation(); onClick(); });
@@ -119,7 +135,7 @@ window.__ModuleLoader__.load({
 
     function itemRow(item, groupId) {
       const row = document.createElement("div");
-      Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "10px 12px", fontSize: "12px" });
+      Object.assign(row.style, { borderBottom: "1px solid var(--dsw-alias-border-l, rgba(128,128,128,.25))", padding: "10px 12px", fontSize: "12px" });
       // 行 1：来源（蓝字，贴左对齐）在前，类型徽章在后
       const kindBadge = item.kind === "subagent"
         ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">AI 子代理</span> `
@@ -129,7 +145,7 @@ window.__ModuleLoader__.load({
             ? `<span style="background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 6px;font-size:11px">分支</span> `
             : "";
       const line1 = document.createElement("div");
-      line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span> ` + kindBadge;
+      line1.innerHTML = `<span style="color:var(--dsw-alias-brand-text, #4338ca);font-size:11px">${esc(item.origin)}</span> ` + kindBadge;
       line1.style.marginBottom = "4px";
       row.appendChild(line1);
       // 行 2：名称（最长 12 字符，超出省略号）
@@ -142,14 +158,14 @@ window.__ModuleLoader__.load({
         ? ` · <span style="color:#b45309">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 86400000))} 天后自动清除</span>`
         : "";
       const line3 = document.createElement("div");
-      line3.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
+      line3.innerHTML = `<span style="color:var(--dsw-alias-label-dimmed, #6b7280);font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
       line3.style.marginBottom = "4px";
       row.appendChild(line3);
       // 行 4：主对话归属（对话组）或内容摘要（其他组）
       if (item.summary) {
         const line4 = document.createElement("div");
         line4.textContent = item.summary;
-        line4.style.color = "#4b5563";
+        line4.style.color = "var(--dsw-alias-label-secondary, #4b5563)";
         line4.style.marginBottom = "6px";
         row.appendChild(line4);
       }
@@ -172,12 +188,12 @@ window.__ModuleLoader__.load({
     function groupBlock(group) {
       const g = document.createElement("div");
       const head = document.createElement("div");
-      head.innerHTML = `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:#9ca3af">(${group.items.length})</span>`;
-      Object.assign(head.style, { padding: "8px 10px", background: "#f9fafb", fontSize: "13px" });
+      head.innerHTML = `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:var(--dsw-alias-label-tertiary, #9ca3af)">(${group.items.length})</span>`;
+      Object.assign(head.style, { padding: "8px 10px", background: "var(--dsw-alias-interactive-bg-hover, #f9fafb)", fontSize: "13px" });
       g.appendChild(head);
       if (group.items.length === 0) {
         const e = document.createElement("div");
-        e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = "#9ca3af"; e.style.fontSize = "12px";
+        e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = "var(--dsw-alias-label-tertiary, #9ca3af)"; e.style.fontSize = "12px";
         g.appendChild(e);
       }
       for (const it of group.items) g.appendChild(itemRow(it, group.id));
@@ -190,20 +206,20 @@ window.__ModuleLoader__.load({
       let total = 0;
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) { keys.push(k); total += (localStorage.getItem(k) || "").length * 2; } }
-      head.innerHTML = `<b>浏览器存储 localStorage</b> <span style="color:#9ca3af">(${keys.length} 个键 · ${fmtSize(total)})</span>`;
-      Object.assign(head.style, { padding: "8px 10px", background: "#f9fafb", fontSize: "13px" });
+      head.innerHTML = `<b>浏览器存储 localStorage</b> <span style="color:var(--dsw-alias-label-tertiary, #9ca3af)">(${keys.length} 个键 · ${fmtSize(total)})</span>`;
+      Object.assign(head.style, { padding: "8px 10px", background: "var(--dsw-alias-interactive-bg-hover, #f9fafb)", fontSize: "13px" });
       g.appendChild(head);
       if (keys.length === 0) {
-        const e = document.createElement("div"); e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = "#9ca3af"; e.style.fontSize = "12px"; g.appendChild(e);
+        const e = document.createElement("div"); e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = "var(--dsw-alias-label-tertiary, #9ca3af)"; e.style.fontSize = "12px"; g.appendChild(e);
       }
       for (const k of keys.sort()) {
         const size = (localStorage.getItem(k) || "").length * 2;
         const masked = k.length > 23 ? k.slice(0, 10) + "***" + k.slice(-10) : k;
         const row = document.createElement("div");
-        Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "10px 12px", fontSize: "12px" });
+        Object.assign(row.style, { borderBottom: "1px solid var(--dsw-alias-border-l, rgba(128,128,128,.25))", padding: "10px 12px", fontSize: "12px" });
         // 行 1：来源（蓝字，贴左）
         const line1 = document.createElement("div");
-        line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(lsOrigin(k))}</span>`;
+        line1.innerHTML = `<span style="color:var(--dsw-alias-brand-text, #4338ca);font-size:11px">${esc(lsOrigin(k))}</span>`;
         line1.style.marginBottom = "4px";
         row.appendChild(line1);
         // 行 2：键名（密钥式打码）
@@ -213,7 +229,7 @@ window.__ModuleLoader__.load({
         row.appendChild(line2);
         // 行 3：大小 + 清除按钮（同行）
         const line3 = document.createElement("div");
-        line3.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(size)}</span> `;
+        line3.innerHTML = `<span style="color:var(--dsw-alias-label-dimmed, #6b7280);font-size:11px">${fmtSize(size)}</span> `;
         line3.appendChild(actionBtn("清除", () => doClearLskey(k, lsOrigin(k)), true));
         row.appendChild(line3);
         g.appendChild(row);
@@ -224,27 +240,27 @@ window.__ModuleLoader__.load({
     function readonlyBlock(items) {
       const g = document.createElement("div");
       const head = document.createElement("div");
-      head.innerHTML = `<b>只读参考 readonly</b> <span style="color:#9ca3af">(${items.length})</span>`;
-      Object.assign(head.style, { padding: "8px 10px", background: "#f9fafb", fontSize: "13px" });
+      head.innerHTML = `<b>只读参考 readonly</b> <span style="color:var(--dsw-alias-label-tertiary, #9ca3af)">(${items.length})</span>`;
+      Object.assign(head.style, { padding: "8px 10px", background: "var(--dsw-alias-interactive-bg-hover, #f9fafb)", fontSize: "13px" });
       g.appendChild(head);
       for (const it of items) {
         const row = document.createElement("div");
-        Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "10px 12px", fontSize: "12px" });
+        Object.assign(row.style, { borderBottom: "1px solid var(--dsw-alias-border-l, rgba(128,128,128,.25))", padding: "10px 12px", fontSize: "12px" });
         // 行 1：来源（蓝字，贴左）
         const line1 = document.createElement("div");
-        line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(it.origin)}</span>`;
+        line1.innerHTML = `<span style="color:var(--dsw-alias-brand-text, #4338ca);font-size:11px">${esc(it.origin)}</span>`;
         line1.style.marginBottom = "4px";
         row.appendChild(line1);
         // 行 2：描述（大小/说明）
         const line2 = document.createElement("div");
         line2.textContent = it.summary || "";
-        line2.style.color = "#4b5563";
+        line2.style.color = "var(--dsw-alias-label-secondary, #4b5563)";
         line2.style.marginBottom = "4px";
         row.appendChild(line2);
         // 行 3：位置（仅凭据类显示）
         if (it.showPath) {
           const line3 = document.createElement("div");
-          line3.innerHTML = `<span style="color:#9ca3af;font-family:Consolas,monospace;font-size:11px;word-break:break-all;cursor:pointer" title="点击复制">${esc(it.path)}</span>`;
+          line3.innerHTML = `<span style="color:var(--dsw-alias-label-tertiary, #9ca3af);font-family:Consolas,monospace;font-size:11px;word-break:break-all;cursor:pointer" title="点击复制">${esc(it.path)}</span>`;
           line3.addEventListener("click", () => copyText(it.path));
           row.appendChild(line3);
         }
@@ -263,7 +279,7 @@ window.__ModuleLoader__.load({
         refreshSeconds = Number(cfg.refreshSeconds ?? 20);
         trashDays = Number(cfg.trashDays ?? 30);
         const inv = await api("/inventory");
-        if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:#b91c1c">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
+        if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:var(--dsw-alias-state-error-primary, #b91c1c)">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
         contentEl.innerHTML = "";
         const total = document.createElement("div");
         const lsCount = (() => { let n = 0; for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i)) n++; return n; })();
@@ -275,15 +291,15 @@ window.__ModuleLoader__.load({
         const rows = [];
         for (let i = 0; i < entries.length; i += 3) rows.push(entries.slice(i, i + 3).join("　"));
         total.innerHTML = `📊 <b>总览</b>：可删数据 <b>${esc(inv.totals.deletableSize)}</b>` +
-          rows.map((r) => `<div style="margin-top:5px;color:#6b7280">${r}</div>`).join("") +
-          `<div style="margin-top:3px;color:#9ca3af;font-size:11px">${esc(inv.dshHome)}</div>`;
-        Object.assign(total.style, { padding: "10px", fontSize: "12px", color: "#374151", borderBottom: "1px solid #e5e7eb", background: "#fffbeb" });
+          rows.map((r) => `<div style="margin-top:5px;color:var(--dsw-alias-label-dimmed, #6b7280)">${r}</div>`).join("") +
+          `<div style="margin-top:3px;color:var(--dsw-alias-label-tertiary, #9ca3af);font-size:11px">${esc(inv.dshHome)}</div>`;
+        Object.assign(total.style, { padding: "10px", fontSize: "12px", color: "var(--dsw-alias-label-secondary, #374151)", borderBottom: "1px solid #e5e7eb", background: "var(--dsw-alias-interactive-bg-hover-accent, #fffbeb)" });
         contentEl.appendChild(total);
         for (const g of inv.groups) contentEl.appendChild(groupBlock(g));
         contentEl.appendChild(lsBlock());
         contentEl.appendChild(readonlyBlock(inv.readonly || []));
       } catch (e) {
-        contentEl.innerHTML = `<div style="padding:12px;color:#b91c1c">加载失败: ${esc(e.message)}</div>`;
+        contentEl.innerHTML = `<div style="padding:12px;color:var(--dsw-alias-state-error-primary, #b91c1c)">加载失败: ${esc(e.message)}</div>`;
       } finally {
         if (refreshTimer) clearTimeout(refreshTimer);
         refreshTimer = setTimeout(refresh, refreshSeconds * 1000);
@@ -297,16 +313,16 @@ window.__ModuleLoader__.load({
       panel.id = "data-ledger-panel";
       Object.assign(panel.style, {
         position: "fixed", top: "0", right: "0", bottom: "0", width: "400px",
-        background: "#ffffff", color: "#111827", boxShadow: "-4px 0 16px rgba(0,0,0,.12)",
+        background: "var(--dsw-alias-bg-overlay, #ffffff)", color: "var(--dsw-alias-label-primary, #111827)", boxShadow: "-4px 0 16px rgba(0,0,0,.12)",
         zIndex: "2147482900", transform: "translateX(100%)", transition: "transform .2s",
         display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif",
       });
       const bar = document.createElement("div");
-      Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#111827", color: "#fff" });
-      bar.innerHTML = `<b style="font-size:14px">📋 数据管理</b><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
+      Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "var(--dsw-alias-button-floating-fill, #111827)", color: "var(--dsw-alias-label-primary-inverted, #fff)" });
+      bar.innerHTML = `<b style="font-size:14px">📋 数据管理</b><span style="font-size:11px;color:var(--dsw-alias-label-tertiary, #9ca3af)">${esc(fmtTime(Date.now()))}</span>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
-      refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
+      refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "var(--dsw-alias-label-secondary, #374151)", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
       refBtn.addEventListener("click", refresh);
       btns.appendChild(refBtn);
       bar.appendChild(btns);
@@ -320,7 +336,7 @@ window.__ModuleLoader__.load({
       btn.textContent = "数据管理";
       Object.assign(btn.style, {
         position: "fixed", right: "0", top: "46%", zIndex: "2147482800",
-        background: "#111827", color: "#fff", border: "none", borderTopLeftRadius: "10px",
+        background: "var(--dsw-alias-button-floating-fill, #111827)", color: "var(--dsw-alias-label-primary-inverted, #fff)", border: "none", borderTopLeftRadius: "10px",
         borderBottomLeftRadius: "10px", padding: "12px 6px", fontSize: "13px",
         cursor: "pointer", writingMode: "vertical-rl", letterSpacing: "4px",
         boxShadow: "-2px 0 8px rgba(0,0,0,.18)",
