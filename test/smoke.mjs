@@ -37,6 +37,11 @@ await check('对话组区分主/子代理', async () => {
   const s = subs[0]
   assert.ok(s.parentTitle && s.summary.includes('主对话'), '子代理应标注隶属关系')
   console.log(`  子代理 ${subs.length} 个 / 主对话 ${mains.length} 个，示例: ${s.name} → ${s.parentTitle}`)
+  const fork = sess.items.find(i => i.kind === 'fork')
+  if (fork) {
+    assert.ok(!fork.name.includes('('), 'fork 标题应去掉重名后缀')
+    console.log(`  fork 示例: ${fork.name} → 主对话「${fork.parentTitle}」`)
+  }
 })
 
 await check('路径校验：项目文件被拒', async () => {

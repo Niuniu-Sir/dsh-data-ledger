@@ -127,22 +127,28 @@ window.__ModuleLoader__.load({
 
     function itemRow(item, groupId) {
       const row = document.createElement("div");
-      Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "8px 10px", fontSize: "12px" });
-      // 行 1：类型徽章 + 来源
+      Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "10px 12px", fontSize: "12px" });
+      // 行 1：来源（蓝字，贴左对齐）在前，类型徽章在后
       const kindBadge = item.kind === "subagent"
         ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">AI 子代理</span> `
         : item.kind === "main"
           ? `<span style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:11px">主对话</span> `
+          : item.kind === "fork"
+            ? `<span style="background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 6px;font-size:11px">分支</span> `
+            : "";
+      const careBadge = item.care === "archived"
+        ? `<span style="background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 6px;font-size:11px">已归档</span> `
+        : item.care === "careful"
+          ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">慎重删除</span> `
           : "";
-      const delBadge = item.suggestDelete
-        ? `<span style="background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 6px;font-size:11px">可安全删除</span> `
-        : "";
       const line1 = document.createElement("div");
-      line1.innerHTML = kindBadge + delBadge + `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span>`;
+      line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span> ` + kindBadge + careBadge;
+      line1.style.marginBottom = "4px";
       row.appendChild(line1);
       // 行 2：名称（最长 12 字符，超出省略号）
       const line2 = document.createElement("div");
       line2.innerHTML = `<b style="font-size:13px">${esc(trunc(item.name))}</b>`;
+      line2.style.marginBottom = "4px";
       row.appendChild(line2);
       // 行 3：大小 · 时间（回收站附自动清除倒计时）
       const daysLeft = groupId === "trash" && item.expiresAt
@@ -150,13 +156,14 @@ window.__ModuleLoader__.load({
         : "";
       const line3 = document.createElement("div");
       line3.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
+      line3.style.marginBottom = "4px";
       row.appendChild(line3);
       // 行 4：主对话归属（对话组）或内容摘要（其他组）
       if (item.summary) {
         const line4 = document.createElement("div");
         line4.textContent = item.summary;
         line4.style.color = "#4b5563";
-        line4.style.margin = "3px 0 5px";
+        line4.style.marginBottom = "6px";
         row.appendChild(line4);
       }
       // 行 5：操作按钮
@@ -196,7 +203,7 @@ window.__ModuleLoader__.load({
       let total = 0;
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) { keys.push(k); total += (localStorage.getItem(k) || "").length * 2; } }
-      head.innerHTML = `<b>浏览器本地存储</b> <span style="color:#9ca3af">(${keys.length} 个键 · ${fmtSize(total)})</span>`;
+      head.innerHTML = `<b>浏览器存储 localStorage</b> <span style="color:#9ca3af">(${keys.length} 个键 · ${fmtSize(total)})</span>`;
       Object.assign(head.style, { padding: "8px 10px", background: "#f9fafb", fontSize: "13px" });
       g.appendChild(head);
       if (keys.length === 0) {
@@ -226,7 +233,7 @@ window.__ModuleLoader__.load({
     function readonlyBlock(items) {
       const g = document.createElement("div");
       const head = document.createElement("div");
-      head.innerHTML = `<b>只读参考（不可删）</b> <span style="color:#9ca3af">(${items.length})</span>`;
+      head.innerHTML = `<b>只读参考 readonly</b> <span style="color:#9ca3af">(${items.length})</span>`;
       Object.assign(head.style, { padding: "8px 10px", background: "#f9fafb", fontSize: "13px" });
       g.appendChild(head);
       for (const it of items) {
@@ -256,8 +263,12 @@ window.__ModuleLoader__.load({
         if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:#b91c1c">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
         contentEl.innerHTML = "";
         const total = document.createElement("div");
-        const entries = Object.entries(inv.totals.groupCounts)
-          .map(([k, v]) => `${GROUP_ZH[k] ?? k} ${k} · ${v}`);
+        const lsCount = (() => { let n = 0; for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i)) n++; return n; })();
+        const entries = [
+          ...Object.entries(inv.totals.groupCounts).map(([k, v]) => `${GROUP_ZH[k] ?? k} ${k} · ${v}`),
+          `浏览器存储 localStorage · ${lsCount}`,
+          `只读参考 readonly · ${(inv.readonly || []).length}`,
+        ];
         const rows = [];
         for (let i = 0; i < entries.length; i += 3) rows.push(entries.slice(i, i + 3).join("　"));
         total.innerHTML = `📊 <b>总览</b>：可删数据 <b>${esc(inv.totals.deletableSize)}</b>` +
