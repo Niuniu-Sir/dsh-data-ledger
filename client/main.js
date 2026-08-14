@@ -166,15 +166,16 @@ window.__ModuleLoader__.load({
 
     const GROUP_ZH = { sessions: "对话", storages: "数据文件", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
 
-    // ---- 两层折叠状态：分组收起 / 主对话收起（持久化，刷新不丢） ----
+    // ---- 两层折叠状态：分组收起 / 主对话收起（持久化，刷新不丢）；分组默认全部收起 ----
     let uiState = { groups: {}, roots: {} };
     try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {} }; } catch { uiState = { groups: {}, roots: {} }; }
     const saveUi = () => { try { localStorage.setItem("dsh-data-ledger.uiState", JSON.stringify(uiState)); } catch { } };
-    const toggleGroup = (id) => { uiState.groups[id] = !uiState.groups[id]; saveUi(); refresh(); };
+    const isGroupCollapsed = (id) => uiState.groups[id] === undefined ? true : !!uiState.groups[id];
+    const toggleGroup = (id) => { uiState.groups[id] = !isGroupCollapsed(id); saveUi(); refresh(); };
     const toggleRoot = (path) => { uiState.roots[path] = !uiState.roots[path]; saveUi(); refresh(); };
     const sectionHead = (id, titleHTML) => {
       const head = document.createElement("div");
-      const collapsed = !!uiState.groups[id];
+      const collapsed = isGroupCollapsed(id);
       head.innerHTML = `<span style="display:inline-block;width:14px;color:${C().tertiary}">${collapsed ? "▸" : "▾"}</span>` + titleHTML;
       Object.assign(head.style, { padding: "8px 10px", background: C().hover, fontSize: "13px", cursor: "pointer", userSelect: "none" });
       head.addEventListener("click", () => toggleGroup(id));
@@ -252,8 +253,9 @@ window.__ModuleLoader__.load({
 
     function groupBlock(group) {
       const g = document.createElement("div");
-      g.appendChild(sectionHead(group.id, `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:${C().tertiary}">(${group.items.length})</span>`));
-      if (uiState.groups[group.id]) return g;
+      const sizeSum = group.items.reduce((a, i) => a + (i.size || 0), 0);
+      g.appendChild(sectionHead(group.id, `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:${C().tertiary}">(${group.items.length} · ${fmtSize(sizeSum)})</span>`));
+      if (isGroupCollapsed(group.id)) return g;
       if (group.items.length === 0) {
         const e = document.createElement("div");
         e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = C().tertiary; e.style.fontSize = "12px";
@@ -286,8 +288,8 @@ window.__ModuleLoader__.load({
       let total = 0;
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) { keys.push(k); total += (localStorage.getItem(k) || "").length * 2; } }
-      g.appendChild(sectionHead("localStorage", `<b>浏览器存储 localStorage</b> <span style="color:${C().tertiary}">(${keys.length} 个键 · ${fmtSize(total)})</span>`));
-      if (uiState.groups["localStorage"]) return g;
+      g.appendChild(sectionHead("localStorage", `<b>浏览器存储 localStorage</b> <span style="color:${C().tertiary}">(${keys.length} · ${fmtSize(total)})</span>`));
+      if (isGroupCollapsed("localStorage")) return g;
       if (keys.length === 0) {
         const e = document.createElement("div"); e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = C().tertiary; e.style.fontSize = "12px"; g.appendChild(e);
       }
@@ -315,8 +317,9 @@ window.__ModuleLoader__.load({
 
     function readonlyBlock(items) {
       const g = document.createElement("div");
-      g.appendChild(sectionHead("readonly", `<b>只读参考 readonly</b> <span style="color:${C().tertiary}">(${items.length})</span>`));
-      if (uiState.groups["readonly"]) return g;
+      const sizeSum = items.reduce((a, i) => a + (i.size || 0), 0);
+      g.appendChild(sectionHead("readonly", `<b>只读参考 readonly</b> <span style="color:${C().tertiary}">(${items.length} · ${fmtSize(sizeSum)})</span>`));
+      if (isGroupCollapsed("readonly")) return g;
       for (const it of items) {
         const row = document.createElement("div");
         Object.assign(row.style, { borderBottom: "1px solid " + C().border, padding: "10px 12px", fontSize: "12px" });
