@@ -27,7 +27,16 @@ window.__ModuleLoader__.load({
       if (bytes < 1073741824) return (bytes / 1048576).toFixed(1) + " MB";
       return (bytes / 1073741824).toFixed(2) + " GB";
     };
-    const fmtTime = (ms) => (ms ? new Date(ms).toLocaleString("zh-CN", { hour12: false }) : "—");
+    const fmtTime = (ms) => {
+      if (!ms) return "—";
+      const d = new Date(ms);
+      const p = (n) => String(n).padStart(2, "0");
+      return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+    };
+    const trunc = (s, n = 12) => {
+      s = String(s ?? "");
+      return s.length > n ? s.slice(0, n) + "…" : s;
+    };
 
     async function api(path, opts) {
       const r = await fetch(API + path, opts ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(opts) } : undefined);
@@ -119,7 +128,7 @@ window.__ModuleLoader__.load({
     function itemRow(item, groupId) {
       const row = document.createElement("div");
       Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "8px 10px", fontSize: "12px" });
-      // 行 1：名称 + 类型徽章
+      // 行 1：类型徽章 + 来源
       const kindBadge = item.kind === "subagent"
         ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">AI 子代理</span> `
         : item.kind === "main"
@@ -128,26 +137,28 @@ window.__ModuleLoader__.load({
       const delBadge = item.suggestDelete
         ? `<span style="background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 6px;font-size:11px">可安全删除</span> `
         : "";
-      const head = document.createElement("div");
-      head.innerHTML = `<b style="font-size:13px">${esc(item.name)}</b> ${kindBadge}${delBadge}`;
-      row.appendChild(head);
-      // 行 2：来源（独立一行，置于描述上方）
-      const originLine = document.createElement("div");
-      originLine.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span>`;
-      originLine.style.marginTop = "2px";
-      row.appendChild(originLine);
+      const line1 = document.createElement("div");
+      line1.innerHTML = kindBadge + delBadge + `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span>`;
+      row.appendChild(line1);
+      // 行 2：名称（最长 12 字符，超出省略号）
+      const line2 = document.createElement("div");
+      line2.innerHTML = `<b style="font-size:13px">${esc(trunc(item.name))}</b>`;
+      row.appendChild(line2);
       // 行 3：大小 · 时间（回收站附自动清除倒计时）
       const daysLeft = groupId === "trash" && item.expiresAt
         ? ` · <span style="color:#b45309">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 86400000))} 天后自动清除</span>`
         : "";
-      const meta = document.createElement("div");
-      meta.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
-      row.appendChild(meta);
-      // 行 4：一句话摘要
-      const sum = document.createElement("div");
-      sum.textContent = item.summary || "";
-      sum.style.color = "#4b5563"; sum.style.margin = "3px 0 5px";
-      row.appendChild(sum);
+      const line3 = document.createElement("div");
+      line3.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
+      row.appendChild(line3);
+      // 行 4：主对话归属（对话组）或内容摘要（其他组）
+      if (item.summary) {
+        const line4 = document.createElement("div");
+        line4.textContent = item.summary;
+        line4.style.color = "#4b5563";
+        line4.style.margin = "3px 0 5px";
+        row.appendChild(line4);
+      }
       // 行 5：操作按钮
       const ops = document.createElement("div");
       if (item.path) {

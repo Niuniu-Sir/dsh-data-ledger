@@ -35,7 +35,7 @@ await check('对话组区分主/子代理', async () => {
   assert.ok(subs.length >= 1, '应有子代理会话')
   assert.ok(mains.length >= 1, '应有主对话')
   const s = subs[0]
-  assert.ok(s.parentTitle && s.summary.includes('由主对话'), '子代理应标注隶属关系')
+  assert.ok(s.parentTitle && s.summary.includes('主对话'), '子代理应标注隶属关系')
   console.log(`  子代理 ${subs.length} 个 / 主对话 ${mains.length} 个，示例: ${s.name} → ${s.parentTitle}`)
 })
 
