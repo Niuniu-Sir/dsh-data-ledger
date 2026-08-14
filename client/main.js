@@ -406,10 +406,10 @@ window.__ModuleLoader__.load({
       panel = document.createElement("div");
       panel.id = "data-ledger-panel";
       Object.assign(panel.style, {
-        position: "fixed", top: "0", right: "0", bottom: "0", width: "400px",
-        background: C().bg, color: C().text, boxShadow: C().shadow,
-        borderLeft: "1px solid " + C().edge,
-        zIndex: "2147482900", transform: "translateX(100%)", transition: "transform .2s",
+        position: "fixed", top: "0", left: "0", bottom: "0", width: "400px",
+        background: C().bg, color: C().text, boxShadow: C().shadow.replace("-4px", "4px"),
+        borderRight: "1px solid " + C().edge,
+        zIndex: "2147482900", transform: "translateX(-100%)", transition: "transform .2s",
         display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif",
       });
       const bar = document.createElement("div");
@@ -435,7 +435,7 @@ window.__ModuleLoader__.load({
       btn.textContent = "📋";
       btn.title = "数据管理（dsh-data-ledger）";
       Object.assign(btn.style, {
-        position: "fixed", right: "12px", top: "58%", zIndex: "2147482800",
+        position: "fixed", left: "12px", top: "58%", zIndex: "2147482800",
         width: "36px", height: "36px",
         background: C().bg, border: "1px solid " + C().edge,
         borderRadius: "10px",
@@ -446,7 +446,7 @@ window.__ModuleLoader__.load({
       let panelOpen = false;
       const setOpen = (open) => {
         panelOpen = open;
-        panel.style.transform = open ? "none" : "translateX(100%)";
+        panel.style.transform = open ? "none" : "translateX(-100%)";
       };
       btn.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -468,8 +468,8 @@ window.__ModuleLoader__.load({
       if (panel) {
         panel.style.background = C().bg;
         panel.style.color = C().text;
-        panel.style.borderLeft = "1px solid " + C().edge;
-        panel.style.boxShadow = C().shadow;
+        panel.style.borderRight = "1px solid " + C().edge;
+        panel.style.boxShadow = C().shadow.replace("-4px", "4px");
         refresh();
       }
       if (btn) {
