@@ -169,9 +169,9 @@ window.__ModuleLoader__.load({
     const GROUP_ZH = { sessions: "对话", storages: "数据文件", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
 
     // ---- 两层折叠状态：分组收起 / 主对话收起（持久化，刷新不丢）；分组默认全部收起 ----
-    let uiState = { groups: {}, roots: {}, width: 300 };
-    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {}, width: 300 }; } catch { uiState = { groups: {}, roots: {}, width: 300 }; }
-    if (typeof uiState.width !== "number" || uiState.width < 240 || uiState.width > 800) uiState.width = 300;
+    let uiState = { groups: {}, roots: {}, width: 250 };
+    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {}, width: 250 }; } catch { uiState = { groups: {}, roots: {}, width: 250 }; }
+    if (typeof uiState.width !== "number" || uiState.width < 240 || uiState.width > 800) uiState.width = 250;
     const saveUi = () => { try { localStorage.setItem("dsh-data-ledger.uiState", JSON.stringify(uiState)); } catch { } };
     const isGroupCollapsed = (id) => uiState.groups[id] === undefined ? true : !!uiState.groups[id];
     const toggleGroup = (id) => { uiState.groups[id] = !isGroupCollapsed(id); saveUi(); refresh(); };
