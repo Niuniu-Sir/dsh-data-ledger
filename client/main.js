@@ -363,13 +363,13 @@ window.__ModuleLoader__.load({
       btn.textContent = "📋";
       btn.title = "数据管理";
       Object.assign(btn.style, {
-        position: "fixed", right: "0", top: "58%", zIndex: "2147482800",
+        position: "fixed", right: "12px", top: "58%", zIndex: "2147482800",
         width: "36px", height: "36px",
         background: C().bg, border: "1px solid " + C().edge,
-        borderTopLeftRadius: "10px", borderBottomLeftRadius: "10px",
+        borderRadius: "10px",
         padding: "0", fontSize: "15px", lineHeight: "1",
         cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: "-2px 0 8px rgba(0,0,0,.18)",
+        boxShadow: "0 2px 10px rgba(0,0,0,.18)",
       });
       let panelOpen = false;
       const setOpen = (open) => {
