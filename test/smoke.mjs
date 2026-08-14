@@ -27,6 +27,18 @@ await check('盘点不抛错且六组齐全', async () => {
   console.log('  只读参考:', inv.readonly.length, '项')
 })
 
+await check('对话组区分主/子代理', async () => {
+  const inv = await collectInventory({ home, trashDays: 30 })
+  const sess = inv.groups.find(g => g.id === 'sessions')
+  const subs = sess.items.filter(i => i.kind === 'subagent')
+  const mains = sess.items.filter(i => i.kind === 'main')
+  assert.ok(subs.length >= 1, '应有子代理会话')
+  assert.ok(mains.length >= 1, '应有主对话')
+  const s = subs[0]
+  assert.ok(s.parentTitle && s.summary.includes('隶属主对话'), '子代理应标注隶属关系')
+  console.log(`  子代理 ${subs.length} 个 / 主对话 ${mains.length} 个，示例: ${s.name} → ${s.parentTitle}`)
+})
+
 await check('路径校验：项目文件被拒', async () => {
   const r = await validateDeletable(home, 'D:\\HomeRailProjects\\AGENTS.md')
   assert.equal(r.ok, false)

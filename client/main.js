@@ -114,25 +114,37 @@ window.__ModuleLoader__.load({
       toast("已全部清除"); refresh();
     }
 
+    const GROUP_ZH = { sessions: "对话", storages: "账本数据", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
+
     function itemRow(item, groupId) {
       const row = document.createElement("div");
       Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "8px 10px", fontSize: "12px" });
+      // 行 1：名称 + 类型徽章 + 来源
+      const kindBadge = item.kind === "subagent"
+        ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">子代理</span> `
+        : item.kind === "main"
+          ? `<span style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:11px">主对话</span> `
+          : "";
+      const delBadge = item.suggestDelete
+        ? `<span style="background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 6px;font-size:11px">可安全删除</span> `
+        : "";
       const head = document.createElement("div");
+      head.innerHTML = `<b style="font-size:13px">${esc(item.name)}</b> ${kindBadge}${delBadge}` +
+        `<span style="background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-size:11px">${esc(item.origin)}</span>`;
+      row.appendChild(head);
+      // 行 2：大小 · 时间（回收站附自动清除倒计时）
       const daysLeft = groupId === "trash" && item.expiresAt
         ? ` · <span style="color:#b45309">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 86400000))} 天后自动清除</span>`
         : "";
-      head.innerHTML = `<b style="font-size:13px">${esc(item.name)}</b> ` +
-        `<span style="background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-size:11px">${esc(item.origin)}</span> ` +
-        `<span style="color:#6b7280">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
-      row.appendChild(head);
-      const pathLine = document.createElement("div");
-      pathLine.innerHTML = `<span style="color:#9ca3af;font-family:Consolas,monospace;font-size:11px;word-break:break-all;cursor:pointer" title="点击复制">${esc(item.path || "(已无磁盘文件)")}</span>`;
-      pathLine.addEventListener("click", () => item.path && copyText(item.path));
-      row.appendChild(pathLine);
+      const meta = document.createElement("div");
+      meta.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
+      row.appendChild(meta);
+      // 行 3：一句话摘要
       const sum = document.createElement("div");
       sum.textContent = item.summary || "";
       sum.style.color = "#4b5563"; sum.style.margin = "3px 0 5px";
       row.appendChild(sum);
+      // 行 4：操作按钮
       const ops = document.createElement("div");
       if (item.path) {
         ops.appendChild(actionBtn("复制路径", () => copyText(item.path)));
@@ -151,7 +163,7 @@ window.__ModuleLoader__.load({
     function groupBlock(group) {
       const g = document.createElement("div");
       const head = document.createElement("div");
-      head.innerHTML = `<b>${esc(group.title)}</b> <span style="color:#9ca3af">(${group.items.length})</span>`;
+      head.innerHTML = `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:#9ca3af">(${group.items.length})</span>`;
       Object.assign(head.style, { padding: "8px 10px", background: "#f9fafb", fontSize: "13px" });
       g.appendChild(head);
       if (group.items.length === 0) {
@@ -229,9 +241,12 @@ window.__ModuleLoader__.load({
         if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:#b91c1c">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
         contentEl.innerHTML = "";
         const total = document.createElement("div");
-        total.innerHTML = `📊 <b>总览</b>：可删数据 ${esc(inv.totals.deletableSize)} · ` +
-          Object.entries(inv.totals.groupCounts).map(([k, v]) => `${esc(k)} ${v}`).join(" · ") +
-          ` · <span style="color:#9ca3af">${esc(inv.dshHome)}</span>`;
+        const cntLines = Object.entries(inv.totals.groupCounts)
+          .map(([k, v]) => `${GROUP_ZH[k] ?? k} ${k} · ${v}`)
+          .join("　");
+        total.innerHTML = `📊 <b>总览</b>：可删数据 <b>${esc(inv.totals.deletableSize)}</b>` +
+          `<div style="margin-top:5px;color:#6b7280">${cntLines}</div>` +
+          `<div style="margin-top:3px;color:#9ca3af;font-size:11px">${esc(inv.dshHome)}</div>`;
         Object.assign(total.style, { padding: "10px", fontSize: "12px", color: "#374151", borderBottom: "1px solid #e5e7eb", background: "#fffbeb" });
         contentEl.appendChild(total);
         for (const g of inv.groups) contentEl.appendChild(groupBlock(g));

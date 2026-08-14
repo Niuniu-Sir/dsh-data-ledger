@@ -1,6 +1,6 @@
 {
   "name": "dsh-data-ledger",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "数据台账：统一查看 DSH 本地数据的来源、位置与内容摘要，支持回收站式删除",
   "type": "module",
   "main": "lib/index.mjs",
