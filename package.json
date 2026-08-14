@@ -1,7 +1,7 @@
 {
   "name": "dsh-data-ledger",
-  "version": "0.1.5",
-  "description": "数据台账：统一查看 DSH 本地数据的来源、位置与内容摘要，支持回收站式删除",
+  "version": "0.2.0",
+  "description": "数据台账 + AI 管家：统一本地数据看板（来源/位置/摘要、回收站删除），并给智能体装上看懂与清理数据的 ledger_* 工具",
   "type": "module",
   "main": "lib/index.mjs",
   "exports": {

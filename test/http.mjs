@@ -12,12 +12,15 @@ const home = process.env.DSH_HOME || join(homedir(), '.dsh')
 
 // —— 模拟 DSH 上下文 ——
 const registered = []
+const registeredTools = []
 const ctx = {
   effect(fn) { fn(); return () => {} },
   webServer: { register(route) { registered.push(route); return () => {} } },
+  tools: { register(t) { registeredTools.push(t); return () => {} } },
 }
 apply(ctx, { enabled: true, trashDays: 30, refreshSeconds: 20 })
 assert.ok(registered.length === 6, '应注册 6 条路由，实际 ' + registered.length)
+assert.ok(registeredTools.length === 6, '应注册 6 个管家工具，实际 ' + registeredTools.length)
 
 // —— 模拟 HTTP 请求/响应 ——
 function makeReq(method, url, body) {
