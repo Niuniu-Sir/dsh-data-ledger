@@ -135,9 +135,11 @@ window.__ModuleLoader__.load({
 
     async function doDelete(item) {
       if (!item.deletable || !item.path) return;
-      if (!window.confirm(`删除「${item.name}」（${fmtSize(item.size)}）？\n将移入回收站，${trashDays} 天内可恢复。`)) return;
+      const extra = item.kind === "main" || item.kind === "fork" ? "（其名下子代理将一并进回收站）" : "";
+      if (!window.confirm(`删除「${item.name}」（${fmtSize(item.size)}）？${extra}\n将移入回收站，${trashDays} 天内可恢复。`)) return;
       const r = await api("/delete", { path: item.path });
-      toast(r.ok ? "已移入回收站" : "删除失败: " + (r.error || ""));
+      const n = r.movedCount || 1;
+      toast(r.ok ? `已移入回收站${n > 1 ? "（含 " + (n - 1) + " 个子代理）" : ""}` : "删除失败: " + (r.error || ""));
       refresh();
     }
     async function doRestore(item) {

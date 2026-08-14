@@ -72,8 +72,9 @@ await check('POST /delete 根日志 → 回收站 → restore 还原', async () 
   const del = await call(find('/api/data-ledger/delete'), 'POST', '/api/data-ledger/delete', { path: testFile })
   assert.equal(del.status, 200, del.json?.error)
   assert.equal(del.json.ok, true)
+  assert.equal(del.json.movedCount, 1)
   assert.equal(existsSync(testFile), false)
-  const trashPath = del.json.trashPath
+  const trashPath = del.json.moved[0].trashPath
   const inv = await call(find('/api/data-ledger/inventory'), 'GET', '/api/data-ledger/inventory')
   assert.ok(inv.json.groups.find(g => g.id === 'trash').items.some(i => i.path === trashPath))
   const res = await call(find('/api/data-ledger/restore'), 'POST', '/api/data-ledger/restore', { path: trashPath })
@@ -99,9 +100,9 @@ await check('POST /purge 彻底删除回收站条目', async () => {
   await writeFile(testFile, 'purge test\n')
   const del = await call(find('/api/data-ledger/delete'), 'POST', '/api/data-ledger/delete', { path: testFile })
   assert.equal(del.json.ok, true)
-  const pur = await call(find('/api/data-ledger/purge'), 'POST', '/api/data-ledger/purge', { path: del.json.trashPath })
+  const pur = await call(find('/api/data-ledger/purge'), 'POST', '/api/data-ledger/purge', { path: del.json.moved[0].trashPath })
   assert.equal(pur.json.ok, true, pur.json.error)
-  assert.equal(existsSync(del.json.trashPath), false)
+  assert.equal(existsSync(del.json.moved[0].trashPath), false)
 })
 
 await check('错误方法返回 405', async () => {
