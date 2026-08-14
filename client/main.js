@@ -297,7 +297,7 @@ window.__ModuleLoader__.load({
       panel.id = "data-ledger-panel";
       Object.assign(panel.style, {
         position: "fixed", top: "0", right: "0", bottom: "0", width: "400px",
-        background: "var(--dsw-alias-bg-overlay, #ffffff)", color: "var(--dsw-alias-label-primary, #111827)", boxShadow: "-4px 0 16px rgba(0,0,0,.12)",
+        background: "var(--dsw-alias-bg-base, #ffffff)", color: "var(--dsw-alias-label-primary, #111827)", boxShadow: "-4px 0 16px rgba(0,0,0,.12)",
         zIndex: "2147482900", transform: "translateX(100%)", transition: "transform .2s",
         display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif",
       });
