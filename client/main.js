@@ -370,7 +370,7 @@ window.__ModuleLoader__.load({
         headerEl.innerHTML = "";
         // 顶部说明（吸顶区）：看板以查看为主，管理交给 AI，也可手动
         const notice = document.createElement("div");
-        notice.textContent = "看板以查看为主，日常管理交给AI，也支持手动。";
+        notice.textContent = "看板以查看为主，AI管理也支持手动删除";
         Object.assign(notice.style, {
           padding: "8px 12px", fontSize: "11px", color: C().dimmed,
           background: C().hover, borderBottom: "1px solid " + C().border,
