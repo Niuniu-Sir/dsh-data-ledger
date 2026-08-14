@@ -21,32 +21,50 @@ window.__ModuleLoader__.load({
       ["dsh-", "官方 · 界面状态"],
     ];
 
-    // ---- 主题桥：从 body 读官方变量，就浅色/深色两种 ----
-    const FALLBACK = {
-      bg: "#ffffff", text: "#111827", secondary: "#4b5563", tertiary: "#9ca3af",
-      dimmed: "#6b7280", border: "rgba(128,128,128,.25)", hover: "#f9fafb",
-      accent: "#fffbeb", brand: "#4338ca", danger: "#b91c1c", dangerBg: "#fef2f2",
+    // ---- 主题：只做两种模式，色值取自官方静态 token 的实测值 ----
+    // 浅色：白底 + 近黑主字；深色：近黑底 + 近白主字。不读 CSS 变量，杜绝作用域问题。
+    const PALETTES = {
+      light: {
+        bg: "rgb(255,255,255)",            // bluish-00
+        text: "rgb(15,17,21)",             // bluish-1000（近黑，主字）
+        secondary: "rgb(97,102,107)",      // bluish-700
+        tertiary: "rgb(129,133,140)",      // bluish-600
+        dimmed: "rgb(117,122,129)",        // 介于 600/700
+        border: "rgba(0,0,0,.10)",
+        edge: "rgba(0,0,0,.16)",           // 白底时面板左侧的暗灰边缘
+        hover: "rgba(38,49,72,.06)",
+        accent: "rgb(246,247,249)",
+        brand: "rgb(67,56,202)",           // indigo-700
+        danger: "rgb(185,28,28)",
+        dangerBg: "rgb(254,242,242)",
+        shadow: "-4px 0 16px rgba(0,0,0,.14)",
+      },
+      dark: {
+        bg: "rgb(21,21,23)",               // bluish-950
+        text: "rgb(249,250,251)",          // bluish-50（近白，主字）
+        secondary: "rgb(207,211,214)",     // bluish-300
+        tertiary: "rgb(151,157,166)",      // bluish-500
+        dimmed: "rgb(180,185,192)",
+        border: "rgba(255,255,255,.14)",
+        edge: "rgba(255,255,255,.18)",     // 深底时面板左侧的亮灰边缘
+        hover: "rgba(255,255,255,.08)",
+        accent: "rgba(255,255,255,.10)",
+        brand: "rgb(165,180,252)",         // indigo-300（深色可读蓝）
+        danger: "rgb(255,107,107)",
+        dangerBg: "rgba(255,107,107,.12)",
+        shadow: "-4px 0 20px rgba(0,0,0,.5)",
+      },
     };
-    let palette = { ...FALLBACK };
-    function readPalette() {
+    function isDark() {
       try {
-        const cs = getComputedStyle(document.body);
-        const pick = (n, fb) => { const v = cs.getPropertyValue(n).trim(); return v || fb; };
-        palette = {
-          bg: pick("--dsw-alias-bg-base", FALLBACK.bg),
-          text: pick("--dsw-alias-label-primary", FALLBACK.text),
-          secondary: pick("--dsw-alias-label-secondary", FALLBACK.secondary),
-          tertiary: pick("--dsw-alias-label-tertiary", FALLBACK.tertiary),
-          dimmed: pick("--dsw-alias-label-dimmed", FALLBACK.dimmed),
-          border: pick("--dsw-alias-border-l", FALLBACK.border),
-          hover: pick("--dsw-alias-interactive-bg-hover", FALLBACK.hover),
-          accent: pick("--dsw-alias-interactive-bg-hover-accent", FALLBACK.accent),
-          brand: pick("--dsw-alias-brand-text", FALLBACK.brand),
-          danger: pick("--dsw-alias-state-error-primary", FALLBACK.danger),
-          dangerBg: pick("--dsw-alias-interactive-bg-hover-danger", FALLBACK.dangerBg),
-        };
-      } catch { palette = { ...FALLBACK }; }
+        const a = document.body.getAttribute("data-ds-dark-theme")
+          ?? document.documentElement.getAttribute("data-ds-dark-theme");
+        if (a !== null) return true; // 官方深色靠该属性存在性
+        return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      } catch { return false; }
     }
+    let palette = PALETTES.light;
+    function readPalette() { palette = isDark() ? PALETTES.dark : PALETTES.light; }
     const C = () => palette;
 
     const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -322,7 +340,8 @@ window.__ModuleLoader__.load({
       panel.id = "data-ledger-panel";
       Object.assign(panel.style, {
         position: "fixed", top: "0", right: "0", bottom: "0", width: "400px",
-        background: C().bg, color: C().text, boxShadow: "-4px 0 16px rgba(0,0,0,.25)",
+        background: C().bg, color: C().text, boxShadow: C().shadow,
+        borderLeft: "1px solid " + C().edge,
         zIndex: "2147482900", transform: "translateX(100%)", transition: "transform .2s",
         display: "flex", flexDirection: "column", fontFamily: "system-ui, sans-serif",
       });
@@ -368,15 +387,24 @@ window.__ModuleLoader__.load({
       refresh();
     }
 
-    // 主题切换即时跟随
-    new MutationObserver(() => {
+    // 主题切换即时跟随（官方属性挂 body 或 html 皆可，System 模式走媒体查询）
+    const applyTheme = () => {
       readPalette();
       if (panel) {
         panel.style.background = C().bg;
         panel.style.color = C().text;
+        panel.style.borderLeft = "1px solid " + C().edge;
+        panel.style.boxShadow = C().shadow;
         refresh();
       }
-    }).observe(document.body, { attributes: true, attributeFilter: ["data-ds-dark-theme"] });
+    };
+    const themeObserver = new MutationObserver(applyTheme);
+    const observeTheme = () => {
+      themeObserver.observe(document.body, { attributes: true, attributeFilter: ["data-ds-dark-theme"] });
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-ds-dark-theme"] });
+    };
+    try { observeTheme(); } catch { /* 忽略 */ }
+    try { window.matchMedia?.("(prefers-color-scheme: dark)").addEventListener?.("change", applyTheme); } catch { /* 忽略 */ }
 
     function apply(ctx) {
       if (window.__DATA_LEDGER_MOUNTED__) return;
