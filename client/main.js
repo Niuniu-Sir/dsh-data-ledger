@@ -306,12 +306,9 @@ window.__ModuleLoader__.load({
       bar.innerHTML = `<b style="font-size:14px">📋 数据台账</b><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
-      refBtn.textContent = "刷新"; Object.assign(refBtn.style, { marginRight: "8px", cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
+      refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
       refBtn.addEventListener("click", refresh);
-      const closeBtn = document.createElement("button");
-      closeBtn.textContent = "关闭"; Object.assign(closeBtn.style, { cursor: "pointer", background: "#4b5563", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
-      closeBtn.addEventListener("click", () => { panel.style.transform = "translateX(100%)"; });
-      btns.appendChild(refBtn); btns.appendChild(closeBtn);
+      btns.appendChild(refBtn);
       bar.appendChild(btns);
       panel.appendChild(bar);
       contentEl = document.createElement("div");
@@ -328,9 +325,21 @@ window.__ModuleLoader__.load({
         cursor: "pointer", writingMode: "vertical-rl", letterSpacing: "4px",
         boxShadow: "-2px 0 8px rgba(0,0,0,.18)",
       });
-      btn.addEventListener("click", () => {
-        const open = panel.style.transform !== "none";
+      let panelOpen = false;
+      const setOpen = (open) => {
+        panelOpen = open;
         panel.style.transform = open ? "none" : "translateX(100%)";
+      };
+      btn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        setOpen(!panelOpen);
+      });
+      // 点面板以外任意位置 → 自动收回（无需关闭按钮）
+      document.addEventListener("click", (event) => {
+        if (!panelOpen) return;
+        const t = event.target;
+        if (panel.contains(t) || (btn && btn.contains(t))) return;
+        setOpen(false);
       });
       document.body.appendChild(btn);
       refresh();
