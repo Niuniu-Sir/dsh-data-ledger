@@ -312,6 +312,14 @@ window.__ModuleLoader__.load({
         const inv = await api("/inventory");
         if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:${C().danger}">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
         contentEl.innerHTML = "";
+        // 顶部说明：看板以查看为主，管理交给 AI，也可手动
+        const notice = document.createElement("div");
+        notice.textContent = "此看板以查看为主，日常管理已交给 AI 管家；需要时也可手动操作。";
+        Object.assign(notice.style, {
+          padding: "8px 12px", fontSize: "11px", color: C().dimmed,
+          background: C().hover, borderBottom: "1px solid " + C().border,
+        });
+        contentEl.appendChild(notice);
         const total = document.createElement("div");
         const lsCount = (() => { let n = 0; for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i)) n++; return n; })();
         const entries = [
