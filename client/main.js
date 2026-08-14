@@ -369,7 +369,7 @@ window.__ModuleLoader__.load({
         headerEl.innerHTML = "";
         // 顶部说明（吸顶区）：看板以查看为主，管理交给 AI，也可手动
         const notice = document.createElement("div");
-        notice.textContent = "此看板以查看为主，日常管理已交给 AI 管家；需要时也可手动操作。";
+        notice.textContent = "此看板以查看为主，日常管理交给AI，同时支持手动。";
         Object.assign(notice.style, {
           padding: "8px 12px", fontSize: "11px", color: C().dimmed,
           background: C().hover, borderBottom: "1px solid " + C().border,
@@ -406,7 +406,7 @@ window.__ModuleLoader__.load({
       panel = document.createElement("div");
       panel.id = "data-ledger-panel";
       Object.assign(panel.style, {
-        position: "fixed", top: "0", left: "0", bottom: "0", width: "400px",
+        position: "fixed", top: "0", left: "0", bottom: "0", width: "320px",
         background: C().bg, color: C().text, boxShadow: C().shadow.replace("-4px", "4px"),
         borderRight: "1px solid " + C().edge,
         zIndex: "2147482900", transform: "translateX(-100%)", transition: "transform .2s",
