@@ -19,7 +19,7 @@ const ctx = {
   tools: { register(t) { registeredTools.push(t); return () => {} } },
 }
 apply(ctx, { enabled: true, trashDays: 30, refreshSeconds: 20 })
-assert.ok(registered.length === 6, '应注册 6 条路由，实际 ' + registered.length)
+assert.ok(registered.length === 7, '应注册 7 条路由，实际 ' + registered.length)
 assert.ok(registeredTools.length === 6, '应注册 6 个管家工具，实际 ' + registeredTools.length)
 
 // —— 模拟 HTTP 请求/响应 ——
