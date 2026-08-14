@@ -169,9 +169,9 @@ window.__ModuleLoader__.load({
     const GROUP_ZH = { sessions: "对话", storages: "数据文件", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
 
     // ---- 两层折叠状态：分组收起 / 主对话收起（持久化，刷新不丢）；分组默认全部收起 ----
-    let uiState = { groups: {}, roots: {}, width: 380 };
-    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {}, width: 380 }; } catch { uiState = { groups: {}, roots: {}, width: 380 }; }
-    if (typeof uiState.width !== "number" || uiState.width < 280 || uiState.width > 800) uiState.width = 380;
+    let uiState = { groups: {}, roots: {}, width: 350 };
+    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {}, width: 350 }; } catch { uiState = { groups: {}, roots: {}, width: 350 }; }
+    if (typeof uiState.width !== "number" || uiState.width < 280 || uiState.width > 800) uiState.width = 350;
     const saveUi = () => { try { localStorage.setItem("dsh-data-ledger.uiState", JSON.stringify(uiState)); } catch { } };
     const isGroupCollapsed = (id) => uiState.groups[id] === undefined ? true : !!uiState.groups[id];
     const toggleGroup = (id) => { uiState.groups[id] = !isGroupCollapsed(id); saveUi(); refresh(); };
@@ -396,41 +396,9 @@ window.__ModuleLoader__.load({
       } catch (e) {
         contentEl.innerHTML = `<div style="padding:12px;color:${C().danger}">加载失败: ${esc(e.message)}</div>`;
       } finally {
-        measurePanelBounds();
         if (refreshTimer) clearTimeout(refreshTimer);
         refreshTimer = setTimeout(refresh, refreshSeconds * 1000);
       }
-    }
-
-    // 面板高度对齐官方侧栏：顶部平「新会话」行，底部不遮「设置」
-    function measurePanelBounds() {
-      if (!panel) return;
-      try {
-        // 锚点1：会话列表里的空白「新会话/New Session」行（treeitem 角色）
-        let topPx = null;
-        for (const el of document.querySelectorAll('[role="treeitem"]')) {
-          const t = (el.textContent || "").trim();
-          if (/^(新会话|New Session)$/i.test(t)) {
-            const r = el.getBoundingClientRect();
-            if (r.top > 0 && r.height > 0) { topPx = r.top; break; }
-          }
-        }
-        if (topPx === null) {
-          const plus = document.querySelector('[aria-label*="新建会话"], [aria-label*="New session"], [aria-label*="New Session"]');
-          if (plus) topPx = plus.getBoundingClientRect().top;
-        }
-        if (topPx !== null) panel.style.top = Math.max(0, topPx) + "px";
-        // 锚点2：最靠下的「设置/Settings」控件
-        let best = null;
-        for (const el of document.querySelectorAll('button, [aria-label]')) {
-          const t = (el.getAttribute("aria-label") || "") + " " + (el.textContent || "");
-          if (/设置|Settings/i.test(t)) {
-            const r = el.getBoundingClientRect();
-            if (r.height > 0 && r.width > 0 && (!best || r.top > best.top)) best = r;
-          }
-        }
-        if (best) panel.style.bottom = Math.max(0, window.innerHeight - best.top + 6) + "px";
-      } catch { /* 保持默认 */ }
     }
 
     function mountPanel() {
@@ -523,11 +491,6 @@ window.__ModuleLoader__.load({
         setOpen(false);
       });
       document.body.appendChild(btn);
-      // 官方 UI 渲染有先后：挂载后多次校准高度
-      measurePanelBounds();
-      setTimeout(() => measurePanelBounds(), 800);
-      setTimeout(() => measurePanelBounds(), 2500);
-      window.addEventListener("resize", () => { if (panel) measurePanelBounds(); });
       refresh();
     }
 
