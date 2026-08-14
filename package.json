@@ -1,6 +1,6 @@
 {
   "name": "dsh-data-ledger",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "数据管理 + AI 管家：统一本地数据看板（来源/位置/摘要、回收站删除），并给智能体装上看懂与清理数据的 ledger_* 工具",
   "type": "module",
   "main": "lib/index.mjs",
