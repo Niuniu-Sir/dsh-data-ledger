@@ -1,4 +1,4 @@
-// 数据台账 · client 半：右侧面板（纯 DOM、零框架、无第三方依赖）
+// 数据管理 · client 半：右侧面板（纯 DOM、零框架、无第三方依赖）
 // 契约：window.__ModuleLoader__.load 工厂返回 { name, inject, apply }
 window.__ModuleLoader__.load({
   id: "dsh-data-ledger",
@@ -303,7 +303,7 @@ window.__ModuleLoader__.load({
       });
       const bar = document.createElement("div");
       Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#111827", color: "#fff" });
-      bar.innerHTML = `<b style="font-size:14px">📋 数据台账</b><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
+      bar.innerHTML = `<b style="font-size:14px">📋 数据管理</b><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
       refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
@@ -317,7 +317,7 @@ window.__ModuleLoader__.load({
       document.body.appendChild(panel);
       // 入口按钮（右侧中部）
       btn = document.createElement("button");
-      btn.textContent = "台账";
+      btn.textContent = "数据管理";
       Object.assign(btn.style, {
         position: "fixed", right: "0", top: "46%", zIndex: "2147482800",
         background: "#111827", color: "#fff", border: "none", borderTopLeftRadius: "10px",
