@@ -119,9 +119,9 @@ window.__ModuleLoader__.load({
     function itemRow(item, groupId) {
       const row = document.createElement("div");
       Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "8px 10px", fontSize: "12px" });
-      // 行 1：名称 + 类型徽章 + 来源
+      // 行 1：名称 + 类型徽章
       const kindBadge = item.kind === "subagent"
-        ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">子代理</span> `
+        ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">AI 子代理</span> `
         : item.kind === "main"
           ? `<span style="background:#d1fae5;color:#065f46;border-radius:4px;padding:1px 6px;font-size:11px">主对话</span> `
           : "";
@@ -129,22 +129,26 @@ window.__ModuleLoader__.load({
         ? `<span style="background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 6px;font-size:11px">可安全删除</span> `
         : "";
       const head = document.createElement("div");
-      head.innerHTML = `<b style="font-size:13px">${esc(item.name)}</b> ${kindBadge}${delBadge}` +
-        `<span style="background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-size:11px">${esc(item.origin)}</span>`;
+      head.innerHTML = `<b style="font-size:13px">${esc(item.name)}</b> ${kindBadge}${delBadge}`;
       row.appendChild(head);
-      // 行 2：大小 · 时间（回收站附自动清除倒计时）
+      // 行 2：来源（独立一行，置于描述上方）
+      const originLine = document.createElement("div");
+      originLine.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span>`;
+      originLine.style.marginTop = "2px";
+      row.appendChild(originLine);
+      // 行 3：大小 · 时间（回收站附自动清除倒计时）
       const daysLeft = groupId === "trash" && item.expiresAt
         ? ` · <span style="color:#b45309">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 86400000))} 天后自动清除</span>`
         : "";
       const meta = document.createElement("div");
       meta.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
       row.appendChild(meta);
-      // 行 3：一句话摘要
+      // 行 4：一句话摘要
       const sum = document.createElement("div");
       sum.textContent = item.summary || "";
       sum.style.color = "#4b5563"; sum.style.margin = "3px 0 5px";
       row.appendChild(sum);
-      // 行 4：操作按钮
+      // 行 5：操作按钮
       const ops = document.createElement("div");
       if (item.path) {
         ops.appendChild(actionBtn("复制路径", () => copyText(item.path)));
@@ -241,11 +245,12 @@ window.__ModuleLoader__.load({
         if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:#b91c1c">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
         contentEl.innerHTML = "";
         const total = document.createElement("div");
-        const cntLines = Object.entries(inv.totals.groupCounts)
-          .map(([k, v]) => `${GROUP_ZH[k] ?? k} ${k} · ${v}`)
-          .join("　");
+        const entries = Object.entries(inv.totals.groupCounts)
+          .map(([k, v]) => `${GROUP_ZH[k] ?? k} ${k} · ${v}`);
+        const rows = [];
+        for (let i = 0; i < entries.length; i += 3) rows.push(entries.slice(i, i + 3).join("　"));
         total.innerHTML = `📊 <b>总览</b>：可删数据 <b>${esc(inv.totals.deletableSize)}</b>` +
-          `<div style="margin-top:5px;color:#6b7280">${cntLines}</div>` +
+          rows.map((r) => `<div style="margin-top:5px;color:#6b7280">${r}</div>`).join("") +
           `<div style="margin-top:3px;color:#9ca3af;font-size:11px">${esc(inv.dshHome)}</div>`;
         Object.assign(total.style, { padding: "10px", fontSize: "12px", color: "#374151", borderBottom: "1px solid #e5e7eb", background: "#fffbeb" });
         contentEl.appendChild(total);
