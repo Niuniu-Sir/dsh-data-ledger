@@ -366,6 +366,7 @@ window.__ModuleLoader__.load({
         trashDays = Number(cfg.trashDays ?? 30);
         const inv = await api("/inventory");
         if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:${C().danger}">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
+        api("/client-width", { width: uiState.width || 250 }).catch(() => {});
         contentEl.innerHTML = "";
         headerEl.innerHTML = "";
         // 顶部说明（吸顶区）：看板以查看为主，管理交给 AI，也可手动
@@ -449,7 +450,7 @@ window.__ModuleLoader__.load({
         document.body.style.userSelect = "none";
         const onMove = (ev) => {
           if (!dragging) return;
-          const w = Math.min(800, Math.max(240, ev.clientX));
+          const w = Math.min(800, Math.max(250, ev.clientX));
           panel.style.width = w + "px";
         };
         const onUp = () => {
