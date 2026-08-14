@@ -114,16 +114,8 @@ window.__ModuleLoader__.load({
       localStorage.removeItem(key);
       toast("已清除"); refresh();
     }
-    function doClearAllLs() {
-      if (!window.confirm("清除 DSH 页面的全部浏览器存储？\n（界面布局、面板偏好会重置）")) return;
-      if (!window.confirm("再次确认：全部清除？")) return;
-      const keys = [];
-      for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-      for (const k of keys) localStorage.removeItem(k);
-      toast("已全部清除"); refresh();
-    }
 
-    const GROUP_ZH = { sessions: "对话", storages: "账本数据", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
+    const GROUP_ZH = { sessions: "对话", storages: "数据文件", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
 
     function itemRow(item, groupId) {
       const row = document.createElement("div");
@@ -136,13 +128,8 @@ window.__ModuleLoader__.load({
           : item.kind === "fork"
             ? `<span style="background:#e0e7ff;color:#3730a3;border-radius:4px;padding:1px 6px;font-size:11px">分支</span> `
             : "";
-      const careBadge = item.care === "archived"
-        ? `<span style="background:#fee2e2;color:#b91c1c;border-radius:4px;padding:1px 6px;font-size:11px">已归档</span> `
-        : item.care === "careful"
-          ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">慎重删除</span> `
-          : "";
       const line1 = document.createElement("div");
-      line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span> ` + kindBadge + careBadge;
+      line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(item.origin)}</span> ` + kindBadge;
       line1.style.marginBottom = "4px";
       row.appendChild(line1);
       // 行 2：名称（最长 12 字符，超出省略号）
@@ -211,21 +198,25 @@ window.__ModuleLoader__.load({
       }
       for (const k of keys.sort()) {
         const size = (localStorage.getItem(k) || "").length * 2;
+        const masked = k.length > 23 ? k.slice(0, 10) + "***" + k.slice(-10) : k;
         const row = document.createElement("div");
-        Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "6px 10px", fontSize: "12px" });
-        row.innerHTML = `<span style="font-family:Consolas,monospace;font-size:11px;word-break:break-all">${esc(k)}</span> ` +
-          `<span style="background:#eef2ff;color:#4338ca;border-radius:4px;padding:1px 6px;font-size:11px">${esc(lsOrigin(k))}</span> ` +
-          `<span style="color:#6b7280">${fmtSize(size)}</span>`;
-        const ops = document.createElement("div");
-        ops.appendChild(actionBtn("清除", () => doClearLskey(k, lsOrigin(k)), true));
-        row.appendChild(ops);
+        Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "10px 12px", fontSize: "12px" });
+        // 行 1：来源（蓝字，贴左）
+        const line1 = document.createElement("div");
+        line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(lsOrigin(k))}</span>`;
+        line1.style.marginBottom = "4px";
+        row.appendChild(line1);
+        // 行 2：键名（密钥式打码）
+        const line2 = document.createElement("div");
+        line2.innerHTML = `<span style="font-family:Consolas,monospace;font-size:11px">${esc(masked)}</span>`;
+        line2.style.marginBottom = "4px";
+        row.appendChild(line2);
+        // 行 3：大小 + 清除按钮（同行）
+        const line3 = document.createElement("div");
+        line3.innerHTML = `<span style="color:#6b7280;font-size:11px">${fmtSize(size)}</span> `;
+        line3.appendChild(actionBtn("清除", () => doClearLskey(k, lsOrigin(k)), true));
+        row.appendChild(line3);
         g.appendChild(row);
-      }
-      if (keys.length > 0) {
-        const opsAll = document.createElement("div");
-        opsAll.style.padding = "6px 10px";
-        opsAll.appendChild(actionBtn("全部清除（重置界面状态）", doClearAllLs, true));
-        g.appendChild(opsAll);
       }
       return g;
     }
@@ -238,13 +229,25 @@ window.__ModuleLoader__.load({
       g.appendChild(head);
       for (const it of items) {
         const row = document.createElement("div");
-        Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "8px 10px", fontSize: "12px" });
-        row.innerHTML = `<b>${esc(it.name)}</b> ` +
-          `<span style="background:#f3f4f6;color:#4b5563;border-radius:4px;padding:1px 6px;font-size:11px">${esc(it.origin)}</span> ` +
-          `<span style="color:#6b7280">${fmtSize(it.size)}${it.approx ? "（近似）" : ""}</span>` +
-          `<div style="color:#9ca3af;font-family:Consolas,monospace;font-size:11px;word-break:break-all;cursor:pointer" title="点击复制">${esc(it.path)}</div>` +
-          `<div style="color:#4b5563;margin-top:3px">${esc(it.summary || "")}</div>`;
-        row.querySelector("div[title='点击复制']").addEventListener("click", () => copyText(it.path));
+        Object.assign(row.style, { borderBottom: "1px solid #f3f4f6", padding: "10px 12px", fontSize: "12px" });
+        // 行 1：来源（蓝字，贴左）
+        const line1 = document.createElement("div");
+        line1.innerHTML = `<span style="color:#4338ca;font-size:11px">${esc(it.origin)}</span>`;
+        line1.style.marginBottom = "4px";
+        row.appendChild(line1);
+        // 行 2：描述（大小/说明）
+        const line2 = document.createElement("div");
+        line2.textContent = it.summary || "";
+        line2.style.color = "#4b5563";
+        line2.style.marginBottom = "4px";
+        row.appendChild(line2);
+        // 行 3：位置（仅凭据类显示）
+        if (it.showPath) {
+          const line3 = document.createElement("div");
+          line3.innerHTML = `<span style="color:#9ca3af;font-family:Consolas,monospace;font-size:11px;word-break:break-all;cursor:pointer" title="点击复制">${esc(it.path)}</span>`;
+          line3.addEventListener("click", () => copyText(it.path));
+          row.appendChild(line3);
+        }
         const ops = document.createElement("div");
         ops.appendChild(actionBtn("复制路径", () => copyText(it.path)));
         ops.appendChild(actionBtn("打开位置", () => doOpen(it)));
