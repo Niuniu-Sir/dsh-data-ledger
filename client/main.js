@@ -91,7 +91,7 @@ window.__ModuleLoader__.load({
       return await r.json();
     }
 
-    let panel = null, btn = null, contentEl = null, refreshTimer = null, refreshSeconds = 20, trashDays = 30;
+    let panel = null, btn = null, contentEl = null, headerEl = null, refreshTimer = null, refreshSeconds = 20, trashDays = 30;
 
     function toast(msg) {
       const t = document.createElement("div");
@@ -312,14 +312,15 @@ window.__ModuleLoader__.load({
         const inv = await api("/inventory");
         if (!inv.ok) { contentEl.innerHTML = `<div style="padding:12px;color:${C().danger}">盘点失败: ${esc(inv.error || "未知错误")}</div>`; return; }
         contentEl.innerHTML = "";
-        // 顶部说明：看板以查看为主，管理交给 AI，也可手动
+        headerEl.innerHTML = "";
+        // 顶部说明（吸顶区）：看板以查看为主，管理交给 AI，也可手动
         const notice = document.createElement("div");
         notice.textContent = "此看板以查看为主，日常管理已交给 AI 管家；需要时也可手动操作。";
         Object.assign(notice.style, {
           padding: "8px 12px", fontSize: "11px", color: C().dimmed,
           background: C().hover, borderBottom: "1px solid " + C().border,
         });
-        contentEl.appendChild(notice);
+        headerEl.appendChild(notice);
         const total = document.createElement("div");
         const lsCount = (() => { let n = 0; for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i)) n++; return n; })();
         const entries = [
@@ -333,7 +334,7 @@ window.__ModuleLoader__.load({
           rows.map((r) => `<div style="margin-top:5px;color:${C().secondary}">${r}</div>`).join("") +
           `<div style="margin-top:3px;color:${C().tertiary};font-size:11px">${esc(inv.dshHome)}</div>`;
         Object.assign(total.style, { padding: "10px", fontSize: "12px", color: C().text, borderBottom: "1px solid " + C().border, background: C().accent });
-        contentEl.appendChild(total);
+        headerEl.appendChild(total);
         for (const g of inv.groups) contentEl.appendChild(groupBlock(g));
         contentEl.appendChild(lsBlock());
         contentEl.appendChild(readonlyBlock(inv.readonly || []));
@@ -359,7 +360,7 @@ window.__ModuleLoader__.load({
       });
       const bar = document.createElement("div");
       Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#111827", color: "#fff" });
-      bar.innerHTML = `<b style="font-size:14px">📋 数据管理</b><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
+      bar.innerHTML = `<div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
       refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
@@ -367,13 +368,18 @@ window.__ModuleLoader__.load({
       btns.appendChild(refBtn);
       bar.appendChild(btns);
       panel.appendChild(bar);
+      // 吸顶区：说明 + 总览（不随列表滚动）
+      headerEl = document.createElement("div");
+      Object.assign(headerEl.style, { flexShrink: "0" });
+      panel.appendChild(headerEl);
+      // 滚动区：各分组列表
       contentEl = document.createElement("div");
       Object.assign(contentEl.style, { flex: "1", overflowY: "auto", fontSize: "12px" });
       panel.appendChild(contentEl);
       document.body.appendChild(panel);
       btn = document.createElement("button");
       btn.textContent = "📋";
-      btn.title = "数据管理";
+      btn.title = "数据管理（dsh-data-ledger）";
       Object.assign(btn.style, {
         position: "fixed", right: "12px", top: "58%", zIndex: "2147482800",
         width: "36px", height: "36px",
