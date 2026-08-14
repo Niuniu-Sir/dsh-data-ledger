@@ -34,9 +34,13 @@ await check('对话组区分主/子代理', async () => {
   const mains = sess.items.filter(i => i.kind === 'main')
   assert.ok(subs.length >= 1, '应有子代理会话')
   assert.ok(mains.length >= 1, '应有主对话')
-  const s = subs[0]
-  assert.ok(s.parentTitle && s.summary.includes('主对话'), '子代理应标注隶属关系')
-  console.log(`  子代理 ${subs.length} 个 / 主对话 ${mains.length} 个，示例: ${s.name} → ${s.parentTitle}`)
+  // 树状嵌套：主对话在前，其子代理以 depth=1 紧随其后，且不再重复主对话摘要
+  const nested = sess.items.filter(i => i.depth === 1)
+  assert.ok(nested.length >= 1, '应有嵌套子代理')
+  assert.equal(sess.items[0].depth, 0, '首项应为根（主对话/分支）')
+  assert.equal(nested[0].summary, '', '嵌套子代理不再重复主对话摘要')
+  assert.ok(nested[0].parentTitle, '嵌套子代理保留父标题引用')
+  console.log(`  子代理 ${subs.length} 个 / 嵌套 ${nested.length} 个 / 主对话 ${mains.length} 个，示例: ${nested[0].name} → ${nested[0].parentTitle}`)
   const fork = sess.items.find(i => i.kind === 'fork')
   if (fork) {
     assert.ok(!fork.name.includes('('), 'fork 标题应去掉重名后缀')

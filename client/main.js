@@ -167,7 +167,11 @@ window.__ModuleLoader__.load({
 
     function itemRow(item, groupId) {
       const row = document.createElement("div");
-      Object.assign(row.style, { borderBottom: "1px solid " + C().border, padding: "10px 12px", fontSize: "12px" });
+      Object.assign(row.style, {
+        borderBottom: "1px solid " + C().border,
+        padding: item.depth === 1 ? "10px 12px 10px 30px" : "10px 12px",
+        fontSize: "12px",
+      });
       // 行 1：来源（蓝字，贴左）在前，类型徽章在后
       const kindBadge = item.kind === "subagent"
         ? `<span style="background:#fef3c7;color:#92400e;border-radius:4px;padding:1px 6px;font-size:11px">AI 子代理</span> `
@@ -182,7 +186,7 @@ window.__ModuleLoader__.load({
       row.appendChild(line1);
       // 行 2：名称（最长 12 字符）
       const line2 = document.createElement("div");
-      line2.innerHTML = `<b style="font-size:13px">${esc(trunc(item.name))}</b>`;
+      line2.innerHTML = `<b style="font-size:13px">${item.depth === 1 ? `<span style="color:${C().tertiary}">↳ </span>` : ""}${esc(trunc(item.name))}</b>`;
       line2.style.marginBottom = "4px";
       row.appendChild(line2);
       // 行 3：大小 · 时间（回收站附倒计时）
