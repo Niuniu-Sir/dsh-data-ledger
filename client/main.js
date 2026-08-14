@@ -13,6 +13,7 @@ window.__ModuleLoader__.load({
     const inject = [];
     const API = "/api/data-ledger";
     const LS_PREFIX_ORIGIN = [
+      ["dsh-data-ledger", "插件 dsh-data-ledger · 面板折叠状态"],
       ["dsh-better-sidebar", "插件 dsh-better-sidebar · 布局/偏好"],
       ["dsh-milestone", "插件 dsh-milestone（已卸载）· 书签残留"],
       ["track", "插件 dsh-track · 面板状态"],
@@ -165,7 +166,22 @@ window.__ModuleLoader__.load({
 
     const GROUP_ZH = { sessions: "对话", storages: "数据文件", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
 
-    function itemRow(item, groupId) {
+    // ---- 两层折叠状态：分组收起 / 主对话收起（持久化，刷新不丢） ----
+    let uiState = { groups: {}, roots: {} };
+    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {} }; } catch { uiState = { groups: {}, roots: {} }; }
+    const saveUi = () => { try { localStorage.setItem("dsh-data-ledger.uiState", JSON.stringify(uiState)); } catch { } };
+    const toggleGroup = (id) => { uiState.groups[id] = !uiState.groups[id]; saveUi(); refresh(); };
+    const toggleRoot = (path) => { uiState.roots[path] = !uiState.roots[path]; saveUi(); refresh(); };
+    const sectionHead = (id, titleHTML) => {
+      const head = document.createElement("div");
+      const collapsed = !!uiState.groups[id];
+      head.innerHTML = `<span style="display:inline-block;width:14px;color:${C().tertiary}">${collapsed ? "▸" : "▾"}</span>` + titleHTML;
+      Object.assign(head.style, { padding: "8px 10px", background: C().hover, fontSize: "13px", cursor: "pointer", userSelect: "none" });
+      head.addEventListener("click", () => toggleGroup(id));
+      return head;
+    };
+
+    function itemRow(item, groupId, hasChildren) {
       const row = document.createElement("div");
       Object.assign(row.style, {
         borderBottom: "1px solid " + C().border,
@@ -189,6 +205,19 @@ window.__ModuleLoader__.load({
       line2.innerHTML = `<b style="font-size:13px">${item.depth === 1 ? `<span style="color:${C().tertiary}">↳ </span>` : ""}${esc(trunc(item.name))}</b>`;
       line2.style.marginBottom = "4px";
       row.appendChild(line2);
+      // 主对话行：点击可收起/展开其子代理（两级折叠的第二层）
+      if (hasChildren) {
+        const collapsed = !!uiState.roots[item.path];
+        const arrow = document.createElement("span");
+        arrow.textContent = collapsed ? "▸" : "▾";
+        Object.assign(arrow.style, { display: "inline-block", width: "14px", color: C().tertiary, cursor: "pointer" });
+        arrow.addEventListener("click", (e) => { e.stopPropagation(); toggleRoot(item.path); });
+        line1.prepend(arrow);
+        line1.style.cursor = "pointer";
+        line1.addEventListener("click", () => toggleRoot(item.path));
+        line2.style.cursor = "pointer";
+        line2.addEventListener("click", () => toggleRoot(item.path));
+      }
       // 行 3：大小 · 时间（回收站附倒计时）
       const daysLeft = groupId === "trash" && item.expiresAt
         ? ` · <span style="color:${C().danger}">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 86400000))} 天后自动清除</span>`
@@ -223,16 +252,31 @@ window.__ModuleLoader__.load({
 
     function groupBlock(group) {
       const g = document.createElement("div");
-      const head = document.createElement("div");
-      head.innerHTML = `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:${C().tertiary}">(${group.items.length})</span>`;
-      Object.assign(head.style, { padding: "8px 10px", background: C().hover, fontSize: "13px" });
-      g.appendChild(head);
+      g.appendChild(sectionHead(group.id, `<b>${esc(group.title)} ${esc(group.id)}</b> <span style="color:${C().tertiary}">(${group.items.length})</span>`));
+      if (uiState.groups[group.id]) return g;
       if (group.items.length === 0) {
         const e = document.createElement("div");
         e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = C().tertiary; e.style.fontSize = "12px";
         g.appendChild(e);
+        return g;
       }
-      for (const it of group.items) g.appendChild(itemRow(it, group.id));
+      if (group.id === "sessions") {
+        // 两级折叠的第二层：主对话行可收起其子代理
+        for (let i = 0; i < group.items.length; i++) {
+          const it = group.items[i];
+          if (it.depth === 1) continue;
+          const hasChildren = i + 1 < group.items.length && group.items[i + 1].depth === 1;
+          g.appendChild(itemRow(it, group.id, hasChildren));
+          let j = i + 1;
+          while (j < group.items.length && group.items[j].depth === 1) {
+            if (!uiState.roots[it.path]) g.appendChild(itemRow(group.items[j], group.id, false));
+            j++;
+          }
+          i = j - 1;
+        }
+      } else {
+        for (const it of group.items) g.appendChild(itemRow(it, group.id, false));
+      }
       return g;
     }
 
@@ -242,9 +286,8 @@ window.__ModuleLoader__.load({
       let total = 0;
       const keys = [];
       for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k) { keys.push(k); total += (localStorage.getItem(k) || "").length * 2; } }
-      head.innerHTML = `<b>浏览器存储 localStorage</b> <span style="color:${C().tertiary}">(${keys.length} 个键 · ${fmtSize(total)})</span>`;
-      Object.assign(head.style, { padding: "8px 10px", background: C().hover, fontSize: "13px" });
-      g.appendChild(head);
+      g.appendChild(sectionHead("localStorage", `<b>浏览器存储 localStorage</b> <span style="color:${C().tertiary}">(${keys.length} 个键 · ${fmtSize(total)})</span>`));
+      if (uiState.groups["localStorage"]) return g;
       if (keys.length === 0) {
         const e = document.createElement("div"); e.textContent = "（空）"; e.style.padding = "6px 10px"; e.style.color = C().tertiary; e.style.fontSize = "12px"; g.appendChild(e);
       }
@@ -272,10 +315,8 @@ window.__ModuleLoader__.load({
 
     function readonlyBlock(items) {
       const g = document.createElement("div");
-      const head = document.createElement("div");
-      head.innerHTML = `<b>只读参考 readonly</b> <span style="color:${C().tertiary}">(${items.length})</span>`;
-      Object.assign(head.style, { padding: "8px 10px", background: C().hover, fontSize: "13px" });
-      g.appendChild(head);
+      g.appendChild(sectionHead("readonly", `<b>只读参考 readonly</b> <span style="color:${C().tertiary}">(${items.length})</span>`));
+      if (uiState.groups["readonly"]) return g;
       for (const it of items) {
         const row = document.createElement("div");
         Object.assign(row.style, { borderBottom: "1px solid " + C().border, padding: "10px 12px", fontSize: "12px" });
