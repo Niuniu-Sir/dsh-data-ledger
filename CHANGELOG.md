@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.x — 面板定稿与手感打磨 / Panel polish & final tuning
+- 0.4.9 宽度下限锁定为用户实测 262px（只能拉宽）/ min-width locked to 262px
+- 0.4.8 宽度下限 250px；新增宽度上报接口 / width floor + width-report API
+- 0.4.7 顶部说明句定稿（无句号）、宽度定稿 / final notice text
+- 0.4.6 默认宽度收窄至 250px / default width 250px
+- 0.4.5 默认 300px、拖拽下限 240px / default 300px, drag floor 240px
+- 0.4.4 面板恢复满屏、默认 350px / full-height restored, default 350px
+- 0.4.3 高度对齐锚点重写；时间与标题字号一致并对齐 / bounds anchors rewritten
+- 0.4.2 说明句改写、时间对齐、刷新圆形图标、高度对齐探测 / header refinements
+- 0.4.1 标题栏重排（时间移标题下）；总览只显示英文 id / title bar relayout
+- 0.4.0 默认加宽至 380px；右缘拖拽调宽（可拉宽拉窄、持久化）/ resizable panel
+
 ## 0.3.7
 - 删除主对话/分支时自动连坐其名下子代理（一并进回收站，可恢复）
 - 仓库标准化：双语详细 README、LICENSE、CHANGELOG

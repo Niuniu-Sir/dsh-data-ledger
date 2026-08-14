@@ -1,6 +1,8 @@
 # dsh-data-ledger · 数据管理 / Data Ledger
 
-[![version](https://img.shields.io/badge/version-0.3.7-blue)](package.json)
+[English](README.en.md) · 简体中文
+
+[![version](https://img.shields.io/badge/version-0.4.9-blue)](package.json)
 [![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![topic: dsh-plugin](https://img.shields.io/badge/topic-dsh--plugin-2563eb)](https://github.com/topics/dsh-plugin)
 
