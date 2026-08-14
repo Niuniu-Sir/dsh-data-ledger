@@ -169,8 +169,9 @@ window.__ModuleLoader__.load({
     const GROUP_ZH = { sessions: "对话", storages: "数据文件", skills: "技能", memory: "记忆库", logs: "日志", trash: "回收站" };
 
     // ---- 两层折叠状态：分组收起 / 主对话收起（持久化，刷新不丢）；分组默认全部收起 ----
-    let uiState = { groups: {}, roots: {} };
-    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {} }; } catch { uiState = { groups: {}, roots: {} }; }
+    let uiState = { groups: {}, roots: {}, width: 380 };
+    try { uiState = JSON.parse(localStorage.getItem("dsh-data-ledger.uiState") || "null") ?? { groups: {}, roots: {}, width: 380 }; } catch { uiState = { groups: {}, roots: {}, width: 380 }; }
+    if (typeof uiState.width !== "number" || uiState.width < 280 || uiState.width > 800) uiState.width = 380;
     const saveUi = () => { try { localStorage.setItem("dsh-data-ledger.uiState", JSON.stringify(uiState)); } catch { } };
     const isGroupCollapsed = (id) => uiState.groups[id] === undefined ? true : !!uiState.groups[id];
     const toggleGroup = (id) => { uiState.groups[id] = !isGroupCollapsed(id); saveUi(); refresh(); };
@@ -406,7 +407,7 @@ window.__ModuleLoader__.load({
       panel = document.createElement("div");
       panel.id = "data-ledger-panel";
       Object.assign(panel.style, {
-        position: "fixed", top: "0", left: "0", bottom: "0", width: "320px",
+        position: "fixed", top: "0", left: "0", bottom: "0", width: (uiState.width || 380) + "px",
         background: C().bg, color: C().text, boxShadow: C().shadow.replace("-4px", "4px"),
         borderRight: "1px solid " + C().edge,
         zIndex: "2147482900", transform: "translateX(-100%)", transition: "transform .2s",
@@ -431,6 +432,35 @@ window.__ModuleLoader__.load({
       Object.assign(contentEl.style, { flex: "1", overflowY: "auto", fontSize: "12px" });
       panel.appendChild(contentEl);
       document.body.appendChild(panel);
+      // 右缘拖拽手柄：可拉宽拉窄（280–800px），宽度持久化
+      const handle = document.createElement("div");
+      Object.assign(handle.style, {
+        position: "absolute", top: "0", right: "-3px", bottom: "0", width: "8px",
+        cursor: "col-resize", zIndex: "1",
+      });
+      handle.title = "拖动调整宽度";
+      panel.appendChild(handle);
+      let dragging = false;
+      handle.addEventListener("mousedown", (e) => {
+        e.preventDefault(); e.stopPropagation();
+        dragging = true;
+        document.body.style.userSelect = "none";
+        const onMove = (ev) => {
+          if (!dragging) return;
+          const w = Math.min(800, Math.max(280, ev.clientX));
+          panel.style.width = w + "px";
+        };
+        const onUp = () => {
+          dragging = false;
+          document.body.style.userSelect = "";
+          uiState.width = Math.round(parseFloat(panel.style.width) || 380);
+          saveUi();
+          document.removeEventListener("mousemove", onMove);
+          document.removeEventListener("mouseup", onUp);
+        };
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onUp);
+      });
       btn = document.createElement("button");
       btn.textContent = "📋";
       btn.title = "数据管理（dsh-data-ledger）";
