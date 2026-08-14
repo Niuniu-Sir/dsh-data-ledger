@@ -360,13 +360,16 @@ window.__ModuleLoader__.load({
       panel.appendChild(contentEl);
       document.body.appendChild(panel);
       btn = document.createElement("button");
-      btn.textContent = "数据管理";
+      btn.textContent = "📋";
+      btn.title = "数据管理";
       Object.assign(btn.style, {
-        position: "fixed", right: "0", top: "46%", zIndex: "2147482800",
-        background: "#111827", color: "#fff", border: "none", borderTopLeftRadius: "10px",
-        borderBottomLeftRadius: "10px", padding: "12px 6px", fontSize: "13px",
-        cursor: "pointer", writingMode: "vertical-rl", letterSpacing: "4px",
-        boxShadow: "-2px 0 8px rgba(0,0,0,.3)",
+        position: "fixed", right: "0", top: "58%", zIndex: "2147482800",
+        width: "36px", height: "36px",
+        background: C().bg, border: "1px solid " + C().edge,
+        borderTopLeftRadius: "10px", borderBottomLeftRadius: "10px",
+        padding: "0", fontSize: "15px", lineHeight: "1",
+        cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+        boxShadow: "-2px 0 8px rgba(0,0,0,.18)",
       });
       let panelOpen = false;
       const setOpen = (open) => {
@@ -396,6 +399,10 @@ window.__ModuleLoader__.load({
         panel.style.borderLeft = "1px solid " + C().edge;
         panel.style.boxShadow = C().shadow;
         refresh();
+      }
+      if (btn) {
+        btn.style.background = C().bg;
+        btn.style.border = "1px solid " + C().edge;
       }
     };
     const themeObserver = new MutationObserver(applyTheme);
