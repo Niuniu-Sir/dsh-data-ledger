@@ -184,9 +184,13 @@ window.__ModuleLoader__.load({
 
     function itemRow(item, groupId, hasChildren) {
       const row = document.createElement("div");
+      // 对齐策略：子代理行缩进 30px；带折叠三角的主对话行左缩 16px（+三角 14px = 30px），
+      // 使"对话记录"起点与下方各行、以及子代理行的文本起点全部对齐。
+      const rowPadLeft = item.depth === 1 ? "30px" : (hasChildren ? "16px" : "12px");
+      const extraIndent = hasChildren ? "14px" : "0px";
       Object.assign(row.style, {
         borderBottom: "1px solid " + C().border,
-        padding: item.depth === 1 ? "10px 12px 10px 30px" : "10px 12px",
+        padding: `10px 12px 10px ${rowPadLeft}`,
         fontSize: "12px",
       });
       // 行 1：来源（蓝字，贴左）在前，类型徽章在后
@@ -205,6 +209,7 @@ window.__ModuleLoader__.load({
       const line2 = document.createElement("div");
       line2.innerHTML = `<b style="font-size:13px">${item.depth === 1 ? `<span style="color:${C().tertiary}">↳ </span>` : ""}${esc(trunc(item.name))}</b>`;
       line2.style.marginBottom = "4px";
+      line2.style.paddingLeft = extraIndent;
       row.appendChild(line2);
       // 主对话行：点击可收起/展开其子代理（两级折叠的第二层）
       if (hasChildren) {
@@ -226,6 +231,7 @@ window.__ModuleLoader__.load({
       const line3 = document.createElement("div");
       line3.innerHTML = `<span style="color:${C().dimmed};font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
       line3.style.marginBottom = "4px";
+      line3.style.paddingLeft = extraIndent;
       row.appendChild(line3);
       // 行 4：主对话归属 / 内容摘要
       if (item.summary) {
@@ -233,10 +239,12 @@ window.__ModuleLoader__.load({
         line4.textContent = item.summary;
         line4.style.color = C().secondary;
         line4.style.marginBottom = "6px";
+        line4.style.paddingLeft = extraIndent;
         row.appendChild(line4);
       }
       // 行 5：按钮
       const ops = document.createElement("div");
+      ops.style.paddingLeft = extraIndent;
       if (item.path) {
         ops.appendChild(actionBtn("复制路径", () => copyText(item.path)));
         ops.appendChild(actionBtn("打开位置", () => doOpen(item)));
