@@ -379,9 +379,9 @@ window.__ModuleLoader__.load({
         const total = document.createElement("div");
         const lsCount = (() => { let n = 0; for (let i = 0; i < localStorage.length; i++) if (localStorage.key(i)) n++; return n; })();
         const entries = [
-          ...Object.entries(inv.totals.groupCounts).map(([k, v]) => `${GROUP_ZH[k] ?? k} ${k} · ${v}`),
-          `浏览器存储 localStorage · ${lsCount}`,
-          `只读参考 readonly · ${(inv.readonly || []).length}`,
+          ...Object.entries(inv.totals.groupCounts).map(([k, v]) => `${k} · ${v}`),
+          `localStorage · ${lsCount}`,
+          `readonly · ${(inv.readonly || []).length}`,
         ];
         const rows = [];
         for (let i = 0; i < entries.length; i += 3) rows.push(entries.slice(i, i + 3).join("　"));
@@ -415,7 +415,7 @@ window.__ModuleLoader__.load({
       });
       const bar = document.createElement("div");
       Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#111827", color: "#fff" });
-      bar.innerHTML = `<div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><span style="font-size:11px;color:#9ca3af">${esc(fmtTime(Date.now()))}</span>`;
+      bar.innerHTML = `<div><div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px">${esc(fmtTime(Date.now()))}</div></div>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
       refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
