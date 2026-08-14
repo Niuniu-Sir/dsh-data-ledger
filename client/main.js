@@ -370,7 +370,7 @@ window.__ModuleLoader__.load({
         headerEl.innerHTML = "";
         // 顶部说明（吸顶区）：看板以查看为主，管理交给 AI，也可手动
         const notice = document.createElement("div");
-        notice.textContent = "此看板以查看为主，日常管理交给AI，同时支持手动。";
+        notice.textContent = "看板以查看为主，日常管理交给AI，也支持手动。";
         Object.assign(notice.style, {
           padding: "8px 12px", fontSize: "11px", color: C().dimmed,
           background: C().hover, borderBottom: "1px solid " + C().border,
@@ -401,6 +401,28 @@ window.__ModuleLoader__.load({
       }
     }
 
+    // 面板高度对齐官方侧栏：顶部与「新建会话」框齐平（盖住它），底部不遮「设置」
+    function measurePanelBounds() {
+      if (!panel) return;
+      try {
+        const btns = [...document.querySelectorAll("button")];
+        const newBtn = btns.find(b => /新建会话|新会话|New Session|New Chat|New chat/i.test(b.textContent || ""));
+        if (newBtn) {
+          const r = newBtn.getBoundingClientRect();
+          if (r.top > 0) panel.style.top = Math.max(0, r.top) + "px";
+        }
+        let best = null;
+        for (const b of btns) {
+          const t = (b.textContent || "") + " " + (b.getAttribute("aria-label") || "");
+          if (/设置|Settings/i.test(t)) {
+            const r = b.getBoundingClientRect();
+            if (!best || r.top > best.top) best = r;
+          }
+        }
+        if (best) panel.style.bottom = Math.max(0, window.innerHeight - best.top + 6) + "px";
+      } catch { /* 保持默认 */ }
+    }
+
     function mountPanel() {
       if (document.getElementById("data-ledger-panel")) return;
       readPalette();
@@ -415,10 +437,12 @@ window.__ModuleLoader__.load({
       });
       const bar = document.createElement("div");
       Object.assign(bar.style, { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#111827", color: "#fff" });
-      bar.innerHTML = `<div><div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px">${esc(fmtTime(Date.now()))}</div></div>`;
+      bar.innerHTML = `<div><div><b style="font-size:14px">📋 数据管理</b><span style="font-size:10px;color:#9ca3af;margin-left:6px">dsh-data-ledger</span></div><div style="font-size:10px;color:#9ca3af;margin-top:2px;margin-left:82px">${esc(fmtTime(Date.now()))}</div></div>`;
       const btns = document.createElement("div");
       const refBtn = document.createElement("button");
-      refBtn.textContent = "刷新"; Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "6px", padding: "3px 10px", fontSize: "12px" });
+      refBtn.textContent = "⟳";
+      refBtn.title = "刷新";
+      Object.assign(refBtn.style, { cursor: "pointer", background: "#374151", color: "#fff", border: "none", borderRadius: "50%", width: "24px", height: "24px", padding: "0", fontSize: "13px", lineHeight: "1", display: "flex", alignItems: "center", justifyContent: "center" });
       refBtn.addEventListener("click", refresh);
       btns.appendChild(refBtn);
       bar.appendChild(btns);
@@ -489,6 +513,8 @@ window.__ModuleLoader__.load({
         setOpen(false);
       });
       document.body.appendChild(btn);
+      measurePanelBounds();
+      window.addEventListener("resize", () => { if (panel) measurePanelBounds(); });
       refresh();
     }
 
