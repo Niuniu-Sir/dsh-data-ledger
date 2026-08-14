@@ -87,7 +87,7 @@ ctx.effect(() => {
 ## 8. 踩过的坑（别再犯）
 
 - **【头号坑】`$DSH_HOME` 契约**：dsh 启动时**不把 home 写回 `process.env.DSH_HOME`**（官方内部走 resolveDshHome() 回退；第三方插件若只读环境变量且 apply 时同步抛错 → **整个 profile fail-loud，dsh web 直接崩**）。实例：dsh-memento 空 dbPath 时报 MISSING_DSH_HOME。我方对策（双保险）：① 自建插件一律 `process.env.DSH_HOME || join(homedir(), '.dsh')` 自带回退（data-ledger 已如此，故未崩）；② 对只认环境变量的第三方插件，在 cordis.patch.yml 写死绝对路径 dbPath。可向官方提 issue：boot 后 `process.env.DSH_HOME ??= resolveDshHome()`。
-- **工具注册**（v0.2 实测）：`import { defineTool } from '@deepseek-ai/dsh-tools'` + `export const inject = ['tools', ...]` + `ctx.tools.register(defineTool({ name, description, parameters, output, execute }))`。**output.schema 必须显式 `additionalProperties: true`**（否则 defineTool 抛 UNSUPPORTED_SCHEMA）。独立 node 测试解析不到该包 → 临时 junction 桥：`mklink /J node_modules\@deepseek-ai <全局DSH>\node_modules\@deepseek-ai`，测完即拆（DSH 运行时由官方 loader 接管解析，不受影响）。
+- **工具注册（link: 插件禁止 `import '@deepseek-ai/*'`）**：`link:D:/...` 的真实文件在仓库里，Node ESM 从仓库目录往上找 `node_modules`，**不会**走到 `$DSH_HOME/profiles/node_modules`。`defineTool` 硬导入会让 `dsh web` 直接 `ERR_MODULE_NOT_FOUND`。正确做法：原生 `ctx.tools.register({ name, description, parameters: JSON Schema, output: { schema, render }, execute })`，`inject: ['tools']`。装进 profile/node_modules 的已发布插件才可以 import 官方包（解析能走到 profiles 扁平回退）。
 - `node:fs/promises` **没有** `existsSync`（在 node:fs）。
 - 测试文件里 `await writeFile(...)` 若从 `node:fs`（回调版）导入会报 "cb must be function"。
 - 路由包装器不 await 内层 handler → 测试读到 status 0，真机上错误也会静默。
