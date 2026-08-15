@@ -36,5 +36,11 @@ description: 数据管理管家——每周巡检 DSH 本地数据、自动清�
   2. 「已自动清」：第一档结果
   3. 「请你决定」：idle30d 列表逐条问是否结束
   4. 回收站状态（多少条、何时自动清空）
+  5. **更新检查**：官方 DSH（npm view @deepseek-ai/dsh）与每个已装插件（npm view / git ls-remote 对比已装版本）——有更新就汇报"XX 有新版本，要不要升"
 - 汇报完调用 `ledger_report_done` 记录锚点
-- 用户随时说"看看有多少垃圾/占了多少空间" → 立即 `ledger_scan` 并汇报
+- 用户随时说"看看有多少垃圾/占了多少空间/查更新" → 立即执行并汇报
+
+## 更新纪律
+
+- 升级任何东西前：先备份 `~/.dsh/profiles`；经用户点头才升级；升级后提醒重启
+- npm 插件升级：`dsh plugin --profile web add <包名>@latest`；git 插件升级：重跑 `dsh plugin --profile web add github:<仓库>`；官方升级：`npm install -g @deepseek-ai/dsh@latest`
