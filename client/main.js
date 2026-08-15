@@ -227,12 +227,12 @@ window.__ModuleLoader__.load({
         line2.style.cursor = "pointer";
         line2.addEventListener("click", () => toggleRoot(item.path));
       }
-      // 行 3：大小 · 时间（回收站附倒计时）
-      const daysLeft = groupId === "trash" && item.expiresAt
-        ? ` · <span style="color:${C().danger}">${Math.max(0, Math.ceil((item.expiresAt - Date.now()) / 86400000))} 天后自动清除</span>`
+      // 行 3：大小 · 时间（回收站附已存放天数——无自动删除，纯信息）
+      const storedDays = groupId === "trash" && item.mtime
+        ? ` · <span style="color:${C().tertiary}">已存放 ${Math.max(0, Math.floor((Date.now() - item.mtime) / 86400000))} 天</span>`
         : "";
       const line3 = document.createElement("div");
-      line3.innerHTML = `<span style="color:${C().dimmed};font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${daysLeft}`;
+      line3.innerHTML = `<span style="color:${C().dimmed};font-size:11px">${fmtSize(item.size)}${item.approx ? "（近似）" : ""} · ${fmtTime(item.mtime)}</span>${storedDays}`;
       line3.style.marginBottom = "4px";
       line3.style.paddingLeft = extraIndent;
       row.appendChild(line3);

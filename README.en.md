@@ -19,17 +19,16 @@
 - Every row shows: **origin (which plugin / official) · name · size · time · one-line summary**
 - **Two-level collapse**: click a group header to collapse the group; click a main-conversation row to collapse its subagents (groups collapsed by default)
 - **Tree nesting**: main conversations/forks first, AI subagents indented underneath (`↳`); orphaned subagents listed separately
-- Recycle-bin deletes (30 days, restorable); **deleting a main conversation cascades to its subagents** (all into the recycle bin)
+- Recycle-bin deletes (restorable, **never auto-purged** — only user-named items are purged); **deleting a main conversation cascades to its subagents** (all into the recycle bin)
 - Copy path / reveal in Explorer / localStorage keys viewer with masking
 - Light & dark themes (two hardcoded official palettes), click-outside to close, draggable width (floor locked to the user's measured 262px, up to 800px)
 
 ### AI Steward (for the agent)
 - `ledger_scan` — full inventory (totals, orphans, 30-day idle, legacy data, trash status)
-- `ledger_clean_orphans` — tier-1 auto-clean (orphans / uninstalled-plugin leftovers / logs older than 30 days, no prompt)
-- `ledger_delete_paths` — tier-2 batch delete (user-approved only)
-- `ledger_restore_path` / `ledger_purge_expired` — restore / purge expired trash
+- `ledger_delete_paths` — move to recycle bin (**must list items and get explicit user consent first**)
+- `ledger_restore_path` — restore; `ledger_purge_paths` — permanently delete **only user-named** trash entries
 - `ledger_report_done` — weekly inspection anchor
-- Bundled skill `ledger-steward`: weekly proactive inspection, two-tier rules, safety rails
+- Bundled skill `ledger-steward`: weekly proactive inspection, **ask-only** — the steward has no removal authority; every action asks the user first
 
 ## 🔒 Safety
 
@@ -51,7 +50,7 @@ Restart `dsh web` afterwards. Uninstall: `dsh plugin --profile web remove dsh-da
 
 1. Click the 📋 floating button → the panel slides in; click anywhere outside to dismiss
 2. Click group headers to expand/collapse; click a main-conversation row to collapse its subagents
-3. Tell the agent "how much junk is there" — the steward reports and cleans per the two-tier rules (weekly automatic inspection)
+3. Tell the agent "how much junk is there" — the steward proposes a list and **acts only on items you name** (weekly automatic inspection)
 
 ## ⚙️ Config (the `data-ledger` row in cordis.patch.yml)
 
